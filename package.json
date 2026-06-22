@@ -1,0 +1,10 @@
+{
+  "name": "fridge-planner",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node api/chat.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
