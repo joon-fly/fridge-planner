@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리집 메뉴 플래너</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
+
+.app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar { background: #fafaf7; border-right: 1px solid #e8e8e0; display: flex; flex-direction: column; }
+.sidebar-header { padding: 18px 16px; border-bottom: 1px solid #e8e8e0; display: flex; align-items: center; justify-content: space-between; }
+.sidebar-header h2 { font-size: 15px; font-weight: 600; }
+.save-badge { font-size: 11px; padding: 3px 9px; border-radius: 12px; background: #e6f4ea; color: #2d7a3a; }
+.save-badge.saving { background: #fff8e1; color: #9a6f00; }
+.save-badge.error { background: #fdecea; color: #c0392b; }
+
+.ingredient-list { flex: 1; overflow-y: auto; padding: 10px; }
+.ingredient-item { background: #fff; border: 1px solid #ebebeb; border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; }
+.ing-name { font-size: 14px; font-weight: 600; }
+.ing-qty { font-size: 12px; color: #888; margin-top: 2px; }
+.ing-expiry { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.expiry-ok { background: #e6f4ea; color: #2d7a3a; }
+.expiry-warn { background: #fff8e1; color: #9a6f00; }
+.expiry-danger { background: #fdecea; color: #c0392b; }
+
+.add-form { padding: 10px; border-top: 1px solid #e8e8e0; display: flex; flex-direction: column; gap: 7px; }
+.add-row { display: flex; gap: 6px; }
+.add-form input { font-size: 13px; padding: 7px 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; background: #fff; width: 100%; }
+.add-form input:focus { border-color: #aaa; }
+.add-btn { font-size: 13px; padding: 7px 13px; border: 1px solid #ddd; border-radius: 8px; background: #1a1a1a; color: #fff; cursor: pointer; white-space: nowrap; }
+.add-btn:hover { background: #333; }
+.del-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 15px; padding: 2px 4px; }
+.del-btn:hover { color: #e74c3c; }
+
+/* Main */
+.main { display: flex; flex-direction: column; background: #fff; }
+.main-header { padding: 16px 22px; border-bottom: 1px solid #ebebeb; display: flex; align-items: center; gap: 12px; }
+.main-header h1 { font-size: 17px; font-weight: 600; }
+.tabs { display: flex; gap: 5px; margin-left: auto; }
+.tab { font-size: 12px; padding: 5px 13px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; background: transparent; color: #666; }
+.tab.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+.chat-area { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.msg { max-width: 88%; }
+.msg.user { align-self: flex-end; }
+.msg-label { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+.msg.user .msg-label { text-align: right; }
+.bubble { padding: 11px 15px; font-size: 14px; line-height: 1.65; border-radius: 18px; }
+.msg.user .bubble { background: #1a1a1a; color: #fff; border-radius: 18px 18px 4px 18px; }
+.msg.ai .bubble { background: #f5f5f0; border: 1px solid #ebebeb; border-radius: 18px 18px 18px 4px; }
+
+.quick-btns { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 22px; border-top: 1px solid #ebebeb; }
+.quick-btn { font-size: 12px; padding: 6px 13px; border: 1px solid #ddd; border-radius: 16px; background: transparent; cursor: pointer; color: #555; }
+.quick-btn:hover { background: #f5f5f0; }
+
+.input-row { display: flex; gap: 8px; padding: 14px 22px; border-top: 1px solid #ebebeb; }
+.input-row input { flex: 1; font-size: 14px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 22px; outline: none; }
+.input-row input:focus { border-color: #aaa; }
+.send-btn { font-size: 13px; padding: 10px 18px; border-radius: 22px; border: none; background: #1a1a1a; color: #fff; cursor: pointer; }
+.send-btn:hover { background: #333; }
+
+.dots { display: inline-flex; gap: 4px; align-items: center; padding: 2px 0; }
+.dots span { width: 7px; height: 7px; border-radius: 50%; background: #aaa; animation: dp 1.2s ease-in-out infinite; }
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes dp { 0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)} }
+
+.empty-state { padding: 24px 16px; font-size: 13px; color: #aaa; text-align: center; line-height: 1.7; }
+
+@media (max-width: 640px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid #e8e8e0; max-height: 45vh; }
+  .ingredient-list { max-height: 160px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🧊 내 재고</h2>
+      <span class="save-badge" id="badge">저장됨</span>
+    </div>
+    <div class="ingredient-list" id="ingList"><div class="empty-state">불러오는 중...</div></div>
+    <div class="add-form">
+      <div class="add-row">
+        <input id="iName" placeholder="재료명 (예: 양파)" onkeydown="if(event.key==='Enter')addIng()" />
+        <input id="iQty" placeholder="수량" style="width:70px;flex-shrink:0" onkeydown="if(event.key==='Enter')addIng()" />
+      </div>
+      <div class="add-row">
+        <input id="iUnit" placeholder="단위 (g, 개, 단…)" onkeydown="if(event.key==='Enter')addIng()" />
+        <input id="iExp" type="number" min="0" max="60" placeholder="남은 일수" style="width:90px;flex-shrink:0" onkeydown="if(event.key==='Enter')addIng()" />
+        <button class="add-btn" onclick="addIng()">+ 추가</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="main-header">
+      <h1>🍳 메뉴 추천</h1>
+      <div class="tabs">
+        <button class="tab active" onclick="setTab('chat',this)">대화</button>
+        <button class="tab" onclick="setTab('weekly',this)">주간 계획</button>
+        <button class="tab" onclick="setTab('shopping',this)">구매 추천</button>
+      </div>
+    </div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="qs('오늘 제육볶음이 먹고싶어. 남은 재료로 이번주 메뉴도 추천해줘')">🥩 제육볶음 + 주간계획</button>
+      <button class="quick-btn" onclick="qs('재고 소진할 수 있는 메뉴 3가지 추천해줘')">♻️ 재고 소진 메뉴</button>
+      <button class="quick-btn" onclick="qs('유통기한 짧은 재료부터 쓸 수 있는 메뉴 알려줘')">⚠️ 급한 재료 먼저</button>
+      <button class="quick-btn" onclick="qs('재료 사용 후 재고 업데이트 하고 싶어')">✏️ 재고 업데이트</button>
+    </div>
+    <div class="input-row">
+      <input id="msgInput" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')send()" />
+      <button class="send-btn" onclick="send()">전송 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = window.ENV_SUPABASE_URL || '';
+const SUPABASE_KEY = window.ENV_SUPABASE_KEY || '';
+
+let ingredients = [];
+let chatHistory = [];
+let saveTimer = null;
+
+async function loadIngs() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ingredients?order=expiry.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    ingredients = await res.json();
+  } catch(e) { ingredients = []; }
+  renderIngs();
+  initChat();
+}
+
+async function saveIng(ing) {
+  setBadge('saving');
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ingredients`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name: ing.name, qty: ing.qty, unit: ing.unit, expiry: ing.expiry })
+    });
+    setBadge('saved');
+  } catch(e) { setBadge('error'); }
+}
+
+async function deleteIng(id) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+  } catch(e) {}
+}
+
+async function updateIngQty(id, qty) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qty })
+    });
+  } catch(e) {}
+}
+
+function renderIngs() {
+  const el = document.getElementById('ingList');
+  if (!ingredients.length) { el.innerHTML = '<div class="empty-state">재료를 추가해보세요 👇</div>'; return; }
+  el.innerHTML = ingredients.map(i => {
+    let cls = 'expiry-ok', lbl = `${i.expiry}일 남음`;
+    if (i.expiry <= 1) { cls = 'expiry-danger'; lbl = '오늘까지!'; }
+    else if (i.expiry <= 3) { cls = 'expiry-warn'; lbl = `${i.expiry}일 ⚠️`; }
+    return `<div class="ingredient-item">
+      <div><div class="ing-name">${e(i.name)}</div><div class="ing-qty">${i.qty}${e(i.unit)}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="ing-expiry ${cls}">${lbl}</span>
+        <button class="del-btn" onclick="removeIng('${i.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function e(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function setBadge(s) {
+  const b = document.getElementById('badge');
+  b.className = 'save-badge' + (s==='saving'?' saving':s==='error'?' error':'');
+  b.textContent = s==='saving'?'저장 중...':s==='error'?'저장 실패':'저장됨 ✓';
+}
+
+async function addIng() {
+  const name = document.getElementById('iName').value.trim();
+  if (!name) return;
+  const qty = parseFloat(document.getElementById('iQty').value) || 1;
+  const unit = document.getElementById('iUnit').value.trim() || '개';
+  const expiry = parseInt(document.getElementById('iExp').value) || 7;
+  const ing = { id: 'tmp-' + Date.now(), name, qty, unit, expiry };
+  ingredients.push(ing);
+  ingredients.sort((a,b) => a.expiry - b.expiry);
+  renderIngs();
+  ['iName','iQty','iUnit','iExp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('iName').focus();
+  await saveIng(ing);
+  await loadIngs();
+}
+
+async function removeIng(id) {
+  ingredients = ingredients.filter(i => i.id !== id);
+  renderIngs();
+  await deleteIng(id);
+}
+
+function getCtx() {
+  if (!ingredients.length) return '현재 등록된 재료 없음';
+  return ingredients.map(i => `${i.name} ${i.qty}${i.unit} (${i.expiry}일 이내 사용 권장)`).join(', ');
+}
+
+function initChat() {
+  const area = document.getElementById('chatArea');
+  area.innerHTML = '';
+  const has = ingredients.length > 0;
+  addMsg('ai', `안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n${has ? '현재 재고: ' + ingredients.map(i=>`${i.name} ${i.qty}${i.unit}`).join(', ') : '아직 등록된 재료가 없어요.'}\n\n오늘 뭐 드시고 싶으세요?`);
+}
+
+function addMsg(role, text) {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = `msg ${role === 'user' ? 'user' : 'ai'}`;
+  div.innerHTML = `<div class="msg-label">${role==='user'?'나':'메뉴 플래너'}</div><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addLoading() {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'loading';
+  div.innerHTML = `<div class="msg-label">메뉴 플래너</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+function removeLoading() { const el = document.getElementById('loading'); if(el) el.remove(); }
+
+async function send() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  await processMsg(text);
+}
+async function qs(text) { await processMsg(text); }
+
+function setTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab === 'weekly') qs('이번주 7일치 식단을 현재 재료 기반으로 요일별로 짜줘.');
+  else if (tab === 'shopping') qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 재료 목록을 알려줘.');
+}
+
+async function processMsg(text) {
+  addMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  addLoading();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory, ingredients: getCtx() })
+    });
+    const data = await res.json();
+    let reply = data.reply || '응답을 받지 못했어요.';
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    const updates = [...reply.matchAll(/\[UPDATE:(\{[^}]+\})\]/g)];
+    if (updates.length > 0) {
+      for (const m of updates) {
+        try {
+          const u = JSON.parse(m[1]);
+          const ing = ingredients.find(i => i.name === u.name);
+          if (ing) {
+            ing.qty = Math.max(0, Math.round((ing.qty - (u.usedQty||0)) * 100) / 100);
+            await updateIngQty(ing.id, ing.qty);
+          }
+        } catch(e) {}
+      }
+      reply = reply.replace(/\[UPDATE:\{[^}]+\}\]/g, '').trim();
+      renderIngs();
+    }
+    removeLoading();
+    addMsg('ai', reply);
+  } catch(err) {
+    removeLoading();
+    addMsg('ai', '오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+  }
+}
+
+loadIngs();
+</script>
+</body>
+</html>
