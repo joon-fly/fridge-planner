@@ -23,20 +23,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cat-tab{flex:1;font-size:12px;padding:8px 4px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2px solid transparent}
 .cat-tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:600}
 .ing-list{flex:1;overflow-y:auto;padding:8px}
-.ing-item{background:#fff;border:1px solid #ebebeb;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.ing-item{background:#fff;border:1px solid #ebebeb;border-radius:10px;padding:9px 12px;margin-bottom:6px}
+.ing-item:hover{border-color:#ddd}
+.ing-top{display:flex;align-items:center;justify-content:space-between}
 .ing-name{font-size:13px;font-weight:600}
-.ing-qty{font-size:11px;color:#888;margin-top:2px}
-.expiry{font-size:10px;padding:2px 8px;border-radius:10px}
+.ing-meta{font-size:11px;color:#888;margin-top:3px;display:flex;gap:6px;align-items:center}
+.storage-badge{font-size:10px;padding:1px 6px;border-radius:8px}
+.fridge-badge{background:#e8f4fd;color:#1a6fa6}
+.freezer-badge{background:#e8eafd;color:#3a3aa6}
+.expiry-chip{font-size:10px;padding:2px 8px;border-radius:10px}
 .ok{background:#e6f4ea;color:#2d7a3a}
 .warn{background:#fff8e1;color:#9a6f00}
 .danger{background:#fdecea;color:#c0392b}
-.add-form{padding:10px;border-top:1px solid #e8e8e0}
-.add-form select{width:100%;font-size:13px;padding:6px 9px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;background:#fff}
-.row{display:flex;gap:5px;margin-bottom:5px}
-.add-form input{font-size:12px;padding:6px 9px;border:1px solid #ddd;border-radius:8px;width:100%;background:#fff}
+.add-form{padding:10px;border-top:1px solid #e8e8e0;display:flex;flex-direction:column;gap:6px}
+.add-form select,.add-form input{font-size:12px;padding:6px 9px;border:1px solid #ddd;border-radius:8px;background:#fff;width:100%}
+.row{display:flex;gap:5px}
 .add-btn{font-size:13px;padding:7px;cursor:pointer;background:#1a1a1a;color:#fff;border:none;border-radius:8px;width:100%}
 .add-btn:hover{background:#333}
-.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;flex-shrink:0}
 .del-btn:hover{color:#e74c3c}
 .main{display:flex;flex-direction:column;background:#fff}
 .main-header{padding:14px 20px;border-bottom:1px solid #ebebeb;display:flex;align-items:center;gap:10px}
@@ -51,6 +55,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .chip.full{background:#e6f4ea;color:#2d7a3a;border-color:#c3e6cb}
 .chip.partial{background:#fff8e1;color:#9a6f00;border-color:#ffeaa0}
 .chip:hover{border-color:#aaa}
+.alert-bar{padding:8px 20px;background:#fdecea;border-bottom:1px solid #f5c6cb;display:none}
+.alert-bar.show{display:block}
+.alert-text{font-size:12px;color:#c0392b}
 .chat{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;min-height:300px}
 .msg{max-width:90%}
 .msg.user{align-self:flex-end}
@@ -88,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="summary-bar">
       <div class="stat"><div class="stat-num" id="totalCount">0</div><div class="stat-label">총 재료</div></div>
-      <div class="stat"><div class="stat-num amber" id="warnCount">0</div><div class="stat-label">3일 이내</div></div>
+      <div class="stat"><div class="stat-num amber" id="warnCount">0</div><div class="stat-label">곧 소진필요</div></div>
       <div class="stat"><div class="stat-num green" id="menuCount">0</div><div class="stat-label">가능 메뉴</div></div>
     </div>
     <div class="cat-tabs">
@@ -98,17 +105,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="ing-list" id="ingList"><div class="empty">불러오는 중...</div></div>
     <div class="add-form">
-      <select id="iCat">
-        <option value="meat">🥩 육류/어류</option>
-        <option value="veg">🥦 야채</option>
-      </select>
       <div class="row">
-        <input id="iName" placeholder="재료명 (예: 돼지 앞다리살)" onkeydown="if(event.key==='Enter')addIng()" />
+        <select id="iCat" style="flex:1">
+          <option value="meat">🥩 육류/어류</option>
+          <option value="veg">🥦 야채</option>
+        </select>
+        <select id="iStorage" style="flex:1">
+          <option value="fridge">❄️ 냉장</option>
+          <option value="freezer">🧊 냉동</option>
+        </select>
       </div>
+      <input id="iName" placeholder="재료명 (예: 돼지 앞다리살)" onkeydown="if(event.key==='Enter')addIng()" />
       <div class="row">
-        <input id="iQty" placeholder="수량" style="width:60px;flex-shrink:0" onkeydown="if(event.key==='Enter')addIng()" />
-        <input id="iUnit" placeholder="단위(g,개,단…)" onkeydown="if(event.key==='Enter')addIng()" />
-        <input id="iExp" type="number" min="0" max="60" placeholder="남은 일수" style="width:80px;flex-shrink:0" onkeydown="if(event.key==='Enter')addIng()" />
+        <input id="iQty" placeholder="수량" style="flex:1" onkeydown="if(event.key==='Enter')addIng()" />
+        <input id="iUnit" placeholder="단위(g,개,단…)" style="flex:1.5" onkeydown="if(event.key==='Enter')addIng()" />
       </div>
       <button class="add-btn" onclick="addIng()">+ 추가</button>
     </div>
@@ -123,6 +133,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="tab" onclick="setTab('shopping',this)">구매 추천</button>
       </div>
     </div>
+    <div class="alert-bar" id="alertBar">
+      <div class="alert-text" id="alertText"></div>
+    </div>
     <div class="menu-match-bar">
       <div class="match-label">재고로 만들 수 있는 메뉴 <span id="matchCount" style="font-weight:600;color:#1a1a1a">0개</span></div>
       <div class="chips" id="menuChips"><span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span></div>
@@ -130,8 +143,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="chat" id="chat"></div>
     <div class="quick">
       <button class="qbtn" onclick="qs('재고로 오늘 뭐 먹을 수 있어?')">오늘 뭐 먹지?</button>
-      <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 짜줘')">주간 식단 짜줘</button>
-      <button class="qbtn" onclick="qs('유통기한 급한 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
+      <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 영양 균형 맞춰서 짜줘')">주간 식단 짜줘</button>
+      <button class="qbtn" onclick="qs('보관 기간 지난 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
       <button class="qbtn" onclick="qs('추가로 사면 좋을 재료 추천해줘')">장보기 추천</button>
       <button class="qbtn" onclick="qs('재료 사용 후 재고 업데이트 하고 싶어')">재고 업데이트</button>
     </div>
@@ -143,7 +156,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-// 조미료/김치 등 상시 구비 재료는 제외 — 육류/야채만 매칭
+// 재료별 적정 보관일 (냉장/냉동)
+const STORAGE_DAYS = {
+  fridge: {
+    // 육류
+    '돼지': 3, '삼겹살': 3, '목살': 3, '앞다리': 3, '뒷다리': 3,
+    '소': 4, '양지': 4, '사태': 4, '우둔': 4, '목심': 4, '불고기': 4,
+    '닭': 2, '닭다리': 2, '닭볶음': 2,
+    '계란': 21,
+    '오징어': 1, '고등어': 1, '멸치': 14, '햄': 7, '소시지': 7,
+    '메추리알': 14,
+    // 야채
+    '양파': 14, '대파': 7, '감자': 14, '당근': 14, '두부': 3,
+    '애호박': 5, '버섯': 5, '콩나물': 3, '시금치': 3, '미역': 14,
+    '무': 10, '순두부': 2, '양배추': 7, '고구마': 14,
+  },
+  freezer: {
+    '돼지': 90, '삼겹살': 90, '목살': 90, '앞다리': 90, '뒷다리': 90,
+    '소': 90, '양지': 90, '사태': 90, '우둔': 90, '목심': 90, '불고기': 90,
+    '닭': 90, '닭다리': 90, '닭볶음': 90,
+    '계란': 30,
+    '오징어': 60, '고등어': 60, '멸치': 60, '햄': 30, '소시지': 30,
+    '메추리알': 30,
+    '두부': 30, '시금치': 30, '콩나물': 30, '버섯': 30,
+  }
+};
+
+function getMaxDays(name, storageType) {
+  const table = STORAGE_DAYS[storageType] || STORAGE_DAYS.fridge;
+  for (const key of Object.keys(table)) {
+    if (name.includes(key)) return table[key];
+  }
+  return storageType === 'freezer' ? 60 : 7; // 기본값
+}
+
+function getDaysElapsed(createdAt) {
+  const now = new Date();
+  const created = new Date(createdAt);
+  return Math.floor((now - created) / (1000 * 60 * 60 * 24));
+}
+
+function getExpiryInfo(ing) {
+  const elapsed = getDaysElapsed(ing.created_at);
+  const maxDays = getMaxDays(ing.name, ing.storage_type || 'fridge');
+  const remaining = maxDays - elapsed;
+  return { elapsed, maxDays, remaining };
+}
+
 const MENUS = [
   {menu:"김치찌개",  meat:["돼지 앞다리살","돼지 목살","돼지 삼겹살"], veg:["두부","양파","대파"]},
   {menu:"된장찌개",  meat:[],                                           veg:["두부","애호박","양파","감자","버섯"]},
@@ -167,37 +226,46 @@ const MENUS = [
   {menu:"비빔밥",    meat:["계란"],                                     veg:["시금치","콩나물","당근"]},
 ];
 
-const KEY = 'fridge-v2';
-let ings = [], history = [], currentCat = 'all', saveTimer = null;
+let ings = [], history = [], currentCat = 'all';
 
-async function load() {
-  try {
-    const r = await api('/api/ingredients');
-    ings = Array.isArray(r) ? r : [];
-  } catch(e) { ings = []; }
-  render(); updateMenuMatch(); initChat(); setBadge('saved');
-}
-
-async function api(path, method='GET', body=null) {
+async function apiCall(path, method='GET', body=null) {
   const opts = { method, headers: {'Content-Type':'application/json'} };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(path, opts);
   return r.json();
 }
 
-async function saveRemote(action, payload) {
-  setBadge('saving');
+async function load() {
   try {
-    await api('/api/ingredients', action === 'delete' ? 'DELETE' : action === 'patch' ? 'PATCH' : 'POST',
-      action === 'delete' ? null : payload);
-    setBadge('saved');
-  } catch(e) { setBadge('error'); }
+    const r = await apiCall('/api/ingredients');
+    ings = Array.isArray(r) ? r : [];
+  } catch(e) { ings = []; }
+  render(); updateMenuMatch(); updateAlerts(); initChat(); setBadge('saved');
 }
 
 function setBadge(s) {
   const b = document.getElementById('badge');
   b.className = 'badge'+(s==='saving'?' saving':s==='error'?' error':'');
   b.textContent = s==='saving'?'저장 중...':s==='error'?'오류':'저장됨 ✓';
+}
+
+function updateAlerts() {
+  const expired = ings.filter(i => {
+    const {remaining} = getExpiryInfo(i);
+    return i.qty > 0 && remaining <= 0;
+  });
+  const urgent = ings.filter(i => {
+    const {remaining} = getExpiryInfo(i);
+    return i.qty > 0 && remaining > 0 && remaining <= 2;
+  });
+
+  const bar = document.getElementById('alertBar');
+  const txt = document.getElementById('alertText');
+  const msgs = [];
+  if (expired.length) msgs.push(`⚠️ 보관 기간 초과: ${expired.map(i=>i.name).join(', ')} — 빨리 드세요!`);
+  if (urgent.length) msgs.push(`🔔 곧 소진 필요 (2일 이내): ${urgent.map(i=>i.name).join(', ')}`);
+  if (msgs.length) { bar.className='alert-bar show'; txt.innerHTML=msgs.join('<br>'); }
+  else { bar.className='alert-bar'; }
 }
 
 function getMatched() {
@@ -216,13 +284,13 @@ function getMatched() {
 
 function updateMenuMatch() {
   const matched = getMatched();
-  const full    = matched.filter(m=>m.level==='full');
+  const full = matched.filter(m=>m.level==='full');
   const partial = matched.filter(m=>m.level==='partial');
   document.getElementById('menuCount').textContent = full.length;
   document.getElementById('matchCount').textContent = `${full.length}개 완성, ${partial.length}개 거의 가능`;
   const chips = document.getElementById('menuChips');
   if (!matched.length) {
-    chips.innerHTML = '<span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span>';
+    chips.innerHTML='<span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span>';
     return;
   }
   chips.innerHTML = [...full,...partial].map(m=>
@@ -231,22 +299,47 @@ function updateMenuMatch() {
 }
 
 function render() {
+  const warnCount = ings.filter(i => {
+    const {remaining} = getExpiryInfo(i);
+    return i.qty > 0 && remaining <= 2;
+  }).length;
   document.getElementById('totalCount').textContent = ings.filter(i=>i.qty>0).length;
-  document.getElementById('warnCount').textContent  = ings.filter(i=>i.qty>0&&i.expiry<=3).length;
+  document.getElementById('warnCount').textContent = warnCount;
+
   const el = document.getElementById('ingList');
   const filtered = currentCat==='all' ? ings : ings.filter(i=>i.cat===currentCat);
   if (!filtered.length) { el.innerHTML='<div class="empty">재료를 추가해보세요 👇</div>'; return; }
-  el.innerHTML = [...filtered].sort((a,b)=>a.expiry-b.expiry).map(i => {
-    let cls='ok', lbl=`${i.expiry}일 남음`;
-    if(i.expiry<=1){cls='danger';lbl='오늘까지!';}
-    else if(i.expiry<=3){cls='warn';lbl=`${i.expiry}일 ⚠️`;}
+
+  // 보관기간 초과/임박 순 정렬
+  const sorted = [...filtered].sort((a,b) => {
+    const ra = getExpiryInfo(a).remaining;
+    const rb = getExpiryInfo(b).remaining;
+    return ra - rb;
+  });
+
+  el.innerHTML = sorted.map(i => {
+    const {elapsed, maxDays, remaining} = getExpiryInfo(i);
+    const storageType = i.storage_type || 'fridge';
+    let cls='ok', lbl='';
+    if (remaining <= 0) { cls='danger'; lbl=`${Math.abs(remaining)}일 초과!`; }
+    else if (remaining <= 2) { cls='warn'; lbl=`${remaining}일 남음 ⚠️`; }
+    else { cls='ok'; lbl=`${remaining}일 남음`; }
+
+    const storageLabel = storageType==='freezer' ? '🧊 냉동' : '❄️ 냉장';
+    const storageCls   = storageType==='freezer' ? 'freezer-badge' : 'fridge-badge';
     const icon = i.cat==='meat'?'🥩':'🥦';
+
     return `<div class="ing-item">
-      <div><div class="ing-name">${icon} ${e(i.name)}</div><div class="ing-qty">${i.qty}${e(i.unit)}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
-        <span class="expiry ${cls}">${lbl}</span>
+      <div class="ing-top">
+        <div class="ing-name">${icon} ${e(i.name)}</div>
         <button class="del-btn" onclick="delIng('${i.id}')" aria-label="삭제">✕</button>
       </div>
+      <div class="ing-meta">
+        <span>${i.qty}${e(i.unit)}</span>
+        <span class="storage-badge ${storageCls}">${storageLabel}</span>
+        <span class="expiry-chip ${cls}">${lbl}</span>
+      </div>
+      <div style="font-size:10px;color:#bbb;margin-top:3px">${elapsed}일째 보관 중 (적정 ${maxDays}일)</div>
     </div>`;
   }).join('');
 }
@@ -257,38 +350,51 @@ function setCat(cat,btn){currentCat=cat;document.querySelectorAll('.cat-tab').fo
 async function addIng() {
   const name = document.getElementById('iName').value.trim();
   if (!name) return;
-  const cat    = document.getElementById('iCat').value;
-  const qty    = parseFloat(document.getElementById('iQty').value)||1;
-  const unit   = document.getElementById('iUnit').value.trim()||(cat==='meat'?'g':'개');
-  const expiry = parseInt(document.getElementById('iExp').value)||7;
+  const cat         = document.getElementById('iCat').value;
+  const storage_type= document.getElementById('iStorage').value;
+  const qty         = parseFloat(document.getElementById('iQty').value)||1;
+  const unit        = document.getElementById('iUnit').value.trim()||(cat==='meat'?'g':'개');
   setBadge('saving');
-  await api('/api/ingredients','POST',{name,cat,qty,unit,expiry});
-  ['iName','iQty','iUnit','iExp'].forEach(id=>document.getElementById(id).value='');
+  await apiCall('/api/ingredients','POST',{name,cat,storage_type,qty,unit});
+  ['iName','iQty','iUnit'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('iName').focus();
   await load();
 }
 
 async function delIng(id) {
   ings = ings.filter(i=>i.id!==id);
-  render(); updateMenuMatch();
-  await api(`/api/ingredients?id=${id}`,'DELETE');
+  render(); updateMenuMatch(); updateAlerts();
+  await apiCall(`/api/ingredients?id=${id}`,'DELETE');
 }
 
 function ctx() {
   if (!ings.length) return '현재 등록된 재료 없음';
-  const meat = ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>`${i.name} ${i.qty}${i.unit}(${i.expiry}일 이내)`).join(', ')||'없음';
-  const veg  = ings.filter(i=>i.cat==='veg' &&i.qty>0).map(i=>`${i.name} ${i.qty}${i.unit}(${i.expiry}일 이내)`).join(', ')||'없음';
+  const meat = ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>{
+    const {remaining, elapsed, maxDays} = getExpiryInfo(i);
+    const storage = i.storage_type==='freezer'?'냉동':'냉장';
+    return `${i.name} ${i.qty}${i.unit}(${storage}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
+  }).join(', ')||'없음';
+  const veg = ings.filter(i=>i.cat==='veg'&&i.qty>0).map(i=>{
+    const {remaining, elapsed, maxDays} = getExpiryInfo(i);
+    const storage = i.storage_type==='freezer'?'냉동':'냉장';
+    return `${i.name} ${i.qty}${i.unit}(${storage}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
+  }).join(', ')||'없음';
   const full = getMatched().filter(m=>m.level==='full').map(m=>m.menu).join(', ')||'없음';
   const part = getMatched().filter(m=>m.level==='partial').map(m=>m.menu).join(', ')||'없음';
-  return `[육류/어류] ${meat}\n[야채] ${veg}\n[바로 만들 수 있는 메뉴] ${full}\n[재료 조금 더 있으면 가능한 메뉴] ${part}\n※ 조미료(고추장,간장,된장,김치 등)는 항상 구비되어 있다고 가정합니다.`;
+  return `[육류/어류] ${meat}\n[야채] ${veg}\n[바로 만들 수 있는 메뉴] ${full}\n[재료 조금 더 있으면 가능한 메뉴] ${part}\n※ 조미료/김치는 항상 구비되어 있다고 가정합니다.`;
 }
 
 function initChat() {
   document.getElementById('chat').innerHTML='';
   const full = getMatched().filter(m=>m.level==='full');
-  addMsg('ai', ings.length===0
-    ? '안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n아직 재료가 없어요. 왼쪽에서 육류/야채를 추가해보세요!\n\n조미료, 김치, 간장 등 상시 구비 재료는 따로 입력 안 하셔도 돼요 😊'
-    : `안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n위 메뉴 버튼을 클릭하거나 자유롭게 물어보세요.`);
+  const expired = ings.filter(i=>getExpiryInfo(i).remaining<=0&&i.qty>0);
+  let msg = `안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n`;
+  if (ings.length===0) msg += '아직 재료가 없어요. 왼쪽에서 육류/야채를 추가해보세요!\n\n조미료, 김치 등 상시 구비 재료는 따로 입력 안 하셔도 돼요 😊';
+  else {
+    if (expired.length) msg += `⚠️ ${expired.map(i=>i.name).join(', ')}이(가) 보관 기간을 초과했어요! 오늘 드시는 걸 추천해요.\n\n`;
+    msg += `현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n위 메뉴 버튼을 클릭하거나 자유롭게 물어보세요.`;
+  }
+  addMsg('ai', msg);
 }
 
 function addMsg(role,text) {
@@ -308,8 +414,8 @@ function removeLoading(){const el=document.getElementById('loading');if(el)el.re
 
 function setTab(tab,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  if(tab==='weekly') qs('이번주 7일 식단을 현재 재료 낭비 없이 요일별로 짜줘.');
-  else if(tab==='shopping') qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 알려줘. 조미료나 김치는 제외해줘.');
+  if(tab==='weekly') qs('이번주 7일 식단을 현재 재료 낭비 없이 영양 균형 맞춰서 요일별로 짜줘. 보관 기간 초과 임박한 재료 먼저 써줘.');
+  else if(tab==='shopping') qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 알려줘. 조미료/김치는 제외해줘.');
 }
 
 async function send(){
@@ -322,7 +428,7 @@ async function qs(text){await processMsg(text);}
 async function processMsg(text){
   addMsg('user',text);history.push({role:'user',content:text});addLoading();
   try{
-    const data = await api('/api/chat','POST',{messages:history,ingredients:ctx()});
+    const data = await apiCall('/api/chat','POST',{messages:history,ingredients:ctx()});
     let reply = data.reply||'응답을 받지 못했어요.';
     history.push({role:'assistant',content:reply});
     const updates=[...reply.matchAll(/\[UPDATE:(\{[^}]+\})\]/g)];
@@ -333,12 +439,12 @@ async function processMsg(text){
           const ing=ings.find(i=>i.name===u.name);
           if(ing){
             ing.qty=Math.max(0,Math.round((ing.qty-(u.usedQty||0))*100)/100);
-            await api(`/api/ingredients?id=${ing.id}`,'PATCH',{qty:ing.qty});
+            await apiCall(`/api/ingredients?id=${ing.id}`,'PATCH',{qty:ing.qty});
           }
         }catch(e2){}
       }
       reply=reply.replace(/\[UPDATE:\{[^}]+\}\]/g,'').trim();
-      render();updateMenuMatch();
+      render();updateMenuMatch();updateAlerts();
     }
     removeLoading();addMsg('ai',reply);
   }catch(err){removeLoading();addMsg('ai','오류가 발생했어요. 잠시 후 다시 시도해주세요.');}
