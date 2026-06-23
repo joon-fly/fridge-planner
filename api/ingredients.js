@@ -11,16 +11,17 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   if (req.method === 'GET') {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients?order=expiry.asc`, { headers });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients?order=created_at.asc`, { headers });
     const data = await r.json();
     return res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
+    const { name, cat, storage_type, qty, unit } = req.body;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients`, {
       method: 'POST',
       headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify({ name, cat, storage_type, qty, unit })
     });
     const data = await r.json();
     return res.status(200).json(data);
