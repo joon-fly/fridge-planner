@@ -30,13 +30,16 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 500,
+        thinking: { type: 'disabled' },
+        output_config: { effort: 'low' },
         system,
         messages: [{ role: 'user', content: `메뉴 이름: ${menuName}` }]
       })
     });
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '{}';
+    // adaptive thinking이 켜져 있으면 content[0]이 thinking 블록일 수 있어서, text 블록을 명시적으로 찾는다.
+    const text = data.content?.find(b => b.type === 'text')?.text || '{}';
 
     try {
       const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());

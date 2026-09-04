@@ -36,7 +36,8 @@ ${ingredients}
 4. 주간 계획 시 요일별로 구성하고 재료 낭비를 최소화하세요.
 5. 장보기 추천 시 롯데마트 실시간 상품 정보가 있으면 활용하고, 없으면 일반적인 마트 기준으로 안내하세요.
 6. 재료 사용 후 업데이트 요청 시 [UPDATE:{"name":"재료명","usedQty":숫자}] 형식으로 포함하세요.
-7. 답변은 한국어로, 이모지를 적절히 사용해 친근하게 작성하세요.`;
+7. 답변은 한국어로, 이모지를 적절히 사용해 친근하게 작성하세요.
+8. 간결하게 답변하세요. 불필요한 서론·결론, 같은 내용의 반복, 과도하게 세분화된 표는 피하고 꼭 필요한 정보만 전달하세요. 표는 꼭 필요할 때만, 열도 최소한으로 사용하세요.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -46,7 +47,14 @@ ${ingredients}
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 4096, system, messages })
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 4096,
+        thinking: { type: 'disabled' },
+        output_config: { effort: 'low' },
+        system,
+        messages
+      })
     });
 
     if (!response.ok) {
@@ -56,7 +64,8 @@ ${ingredients}
     }
 
     const data = await response.json();
-    const reply = data.content?.[0]?.text;
+    // adaptive thinking이 켜져 있으면 content[0]이 thinking 블록일 수 있어서, text 블록을 명시적으로 찾는다.
+    const reply = data.content?.find(b => b.type === 'text')?.text;
     if (!reply) return res.status(500).json({ error: 'Empty response' });
     res.status(200).json({ reply });
   } catch (err) {
