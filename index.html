@@ -66,7 +66,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .panel{display:none;flex:1;flex-direction:column;overflow:hidden}
 .panel.active{display:flex}
 
-/* 메뉴 추천 패널 */
+/* 매장 설정 바 */
+.store-bar{padding:8px 20px;border-bottom:1px solid #ebebeb;display:flex;align-items:center;gap:8px;flex-shrink:0;background:#fafaf7}
+.store-bar-label{font-size:11px;color:#888}
+.store-name-badge{font-size:12px;font-weight:600;color:#1a1a1a;background:#fff;border:1px solid #ddd;border-radius:8px;padding:3px 10px}
+.store-change-btn{font-size:11px;padding:3px 9px;border:1px solid #ddd;border-radius:8px;background:transparent;cursor:pointer;color:#666;margin-left:auto}
+.store-change-btn:hover{background:#f0f0f0}
+
+/* 매장 선택 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;gap:12px}
+.modal h3{font-size:16px;font-weight:600}
+.modal-search{display:flex;gap:8px}
+.modal-search input{flex:1;font-size:13px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;outline:none}
+.modal-search select{font-size:13px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;background:#fff}
+.modal-search-btn{font-size:13px;padding:8px 14px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap}
+.store-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;max-height:300px}
+.store-item{background:#f5f5f0;border:1px solid #ebebeb;border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.store-item:hover{border-color:#aaa;background:#efefea}
+.store-item-name{font-size:13px;font-weight:600}
+.store-item-addr{font-size:11px;color:#888;margin-top:2px}
+.modal-close{font-size:13px;padding:8px;border:1px solid #ddd;border-radius:8px;background:transparent;cursor:pointer;color:#666;text-align:center}
+.modal-close:hover{background:#f0f0f0}
+.modal-status{font-size:12px;color:#aaa;text-align:center;padding:8px}
+
+/* 추천 패널 */
 .alert-bar{padding:8px 20px;background:#fdecea;border-bottom:1px solid #f5c6cb;display:none;flex-shrink:0}
 .alert-bar.show{display:block}
 .alert-text{font-size:12px;color:#c0392b}
@@ -140,6 +165,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
+<!-- 로그인 -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">🧊</div>
@@ -152,6 +178,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- 매장 선택 모달 -->
+<div class="modal-overlay" id="storeModal">
+  <div class="modal">
+    <h3>🏪 롯데마트 매장 선택</h3>
+    <div class="modal-search">
+      <input id="storeSearchInput" placeholder="매장명 또는 지역 (예: 잠실)" onkeydown="if(event.key==='Enter')searchStores()" />
+      <select id="storeAreaSelect">
+        <option value="서울">서울</option>
+        <option value="경기">경기</option>
+        <option value="인천">인천</option>
+        <option value="부산">부산</option>
+        <option value="대구">대구</option>
+        <option value="대전">대전</option>
+        <option value="광주">광주</option>
+        <option value="전국">전국</option>
+      </select>
+      <button class="modal-search-btn" onclick="searchStores()">검색</button>
+    </div>
+    <div class="modal-status" id="storeModalStatus">매장명을 입력해서 검색하세요</div>
+    <div class="store-list" id="storeList"></div>
+    <button class="modal-close" onclick="closeStoreModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 앱 -->
 <div class="app" id="app">
   <div class="sidebar">
     <div class="sidebar-header">
@@ -206,6 +257,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- 메뉴 추천 패널 -->
     <div class="panel active" id="panel-recommend">
+      <div class="store-bar">
+        <span class="store-bar-label">🏪 선호 매장</span>
+        <span class="store-name-badge" id="storeNameBadge">미설정</span>
+        <button class="store-change-btn" onclick="openStoreModal()">변경</button>
+      </div>
       <div class="alert-bar" id="alertBar"><div class="alert-text" id="alertText"></div></div>
       <div class="menu-match-bar">
         <div class="match-label">재고로 만들 수 있는 메뉴 <span id="matchCount" style="font-weight:600;color:#1a1a1a">0개</span></div>
@@ -216,7 +272,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="qbtn" onclick="qs('재고로 오늘 뭐 먹을 수 있어?')">오늘 뭐 먹지?</button>
         <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 영양 균형 맞춰서 짜줘')">주간 식단</button>
         <button class="qbtn" onclick="qs('보관 기간 지난 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
-        <button class="qbtn" onclick="qs('추가로 사면 좋을 재료 추천해줘')">장보기 추천</button>
+        <button class="qbtn" onclick="fetchAndShop()">🛒 롯데마트 장보기</button>
       </div>
       <div class="input-row">
         <input id="msgInput" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')send()" />
@@ -231,7 +287,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="menu-grid" id="defaultMenuGrid"><div class="empty">불러오는 중...</div></div>
         <div class="menu-section-title">내가 추가한 메뉴</div>
         <div class="menu-grid" id="myMenuGrid"><div class="empty" style="grid-column:1/-1">아직 추가한 메뉴가 없어요</div></div>
-
         <div class="add-menu-box">
           <h3>➕ 새 메뉴 추가</h3>
           <div class="add-menu-search">
@@ -269,16 +324,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 const STORAGE_DAYS = {
-  fridge: {'돼지':3,'삼겹살':3,'목살':3,'앞다리':3,'뒷다리':3,'소':4,'양지':4,'사태':4,'우둔':4,'목심':4,'불고기':4,'닭':2,'닭다리':2,'닭볶음':2,'계란':21,'오징어':1,'고등어':1,'멸치':14,'햄':7,'소시지':7,'메추리알':14,'양파':14,'대파':7,'감자':14,'당근':14,'두부':3,'애호박':5,'버섯':5,'콩나물':3,'시금치':3,'미역':14,'무':10,'순두부':2,'양배추':7,'고구마':14},
-  freezer: {'돼지':90,'삼겹살':90,'목살':90,'앞다리':90,'뒷다리':90,'소':90,'양지':90,'사태':90,'우둔':90,'목심':90,'불고기':90,'닭':90,'닭다리':90,'닭볶음':90,'계란':30,'오징어':60,'고등어':60,'멸치':60,'햄':30,'소시지':30,'메추리알':30,'두부':30,'시금치':30,'콩나물':30,'버섯':30}
+  fridge:{'돼지':3,'삼겹살':3,'목살':3,'앞다리':3,'뒷다리':3,'소':4,'양지':4,'사태':4,'우둔':4,'목심':4,'불고기':4,'닭':2,'닭다리':2,'닭볶음':2,'계란':21,'오징어':1,'고등어':1,'멸치':14,'햄':7,'소시지':7,'메추리알':14,'양파':14,'대파':7,'감자':14,'당근':14,'두부':3,'애호박':5,'버섯':5,'콩나물':3,'시금치':3,'미역':14,'무':10,'순두부':2,'양배추':7,'고구마':14},
+  freezer:{'돼지':90,'삼겹살':90,'목살':90,'앞다리':90,'뒷다리':90,'소':90,'양지':90,'사태':90,'우둔':90,'목심':90,'불고기':90,'닭':90,'닭다리':90,'닭볶음':90,'계란':30,'오징어':60,'고등어':60,'멸치':60,'햄':30,'소시지':30,'메추리알':30,'두부':30,'시금치':30,'콩나물':30,'버섯':30}
 };
 function getMaxDays(name,st){const t=STORAGE_DAYS[st]||STORAGE_DAYS.fridge;for(const k of Object.keys(t)){if(name.includes(k))return t[k];}return st==='freezer'?60:7;}
 function getDaysElapsed(ca){return Math.floor((new Date()-new Date(ca))/86400000);}
 function getExpiryInfo(i){const e=getDaysElapsed(i.created_at),m=getMaxDays(i.name,i.storage_type||'fridge');return{elapsed:e,maxDays:m,remaining:m-e};}
 
 let currentUser=null,currentToken=null,ings=[],menus=[],chatHistory=[],currentCat='all';
+let userSettings=null; // 선호 매장
 
-// 로그인
 async function login(){
   const email=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;
@@ -296,7 +351,7 @@ async function login(){
 }
 function logout(){
   sessionStorage.removeItem('token');sessionStorage.removeItem('user');
-  currentUser=null;currentToken=null;ings=[];menus=[];chatHistory=[];
+  currentUser=null;currentToken=null;ings=[];menus=[];chatHistory=[];userSettings=null;
   document.getElementById('app').className='app';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginEmail').value='';document.getElementById('loginPassword').value='';
@@ -319,7 +374,7 @@ async function authFetch(path,method='GET',body=null){
 }
 
 async function loadAll(){
-  await Promise.all([loadIngs(),loadMenus()]);
+  await Promise.all([loadIngs(),loadMenus(),loadSettings()]);
   render();updateMenuMatch();updateAlerts();initChat();setBadge('saved');
 }
 
@@ -332,8 +387,57 @@ async function loadMenus(){
   catch(e){menus=[];}
   renderMenus();
 }
+async function loadSettings(){
+  try{
+    const r=await fetch(`/api/settings?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`}});
+    userSettings=await r.json();
+    updateStoreBadge();
+  }catch(e){userSettings=null;}
+}
+
+function updateStoreBadge(){
+  const badge=document.getElementById('storeNameBadge');
+  badge.textContent=userSettings?.store_name||'미설정';
+}
 
 function setBadge(s){const b=document.getElementById('badge');b.className='badge'+(s==='saving'?' saving':s==='error'?' error':'');b.textContent=s==='saving'?'저장 중...':s==='error'?'오류':'저장됨 ✓';}
+
+// 매장 모달
+function openStoreModal(){document.getElementById('storeModal').className='modal-overlay show';}
+function closeStoreModal(){document.getElementById('storeModal').className='modal-overlay';document.getElementById('storeList').innerHTML='';}
+
+async function searchStores(){
+  const keyword=document.getElementById('storeSearchInput').value.trim();
+  const area=document.getElementById('storeAreaSelect').value;
+  if(!keyword){document.getElementById('storeModalStatus').textContent='매장명을 입력해주세요.';return;}
+  document.getElementById('storeModalStatus').textContent='검색 중...';
+  document.getElementById('storeList').innerHTML='';
+  try{
+    const r=await fetch(`/api/lottemart?action=stores&keyword=${encodeURIComponent(keyword)}&area=${encodeURIComponent(area)}`);
+    const data=await r.json();
+    const stores=data?.data||data?.stores||[];
+    if(!stores.length){document.getElementById('storeModalStatus').textContent='검색 결과가 없어요.';return;}
+    document.getElementById('storeModalStatus').textContent=`${stores.length}개 매장 발견`;
+    document.getElementById('storeList').innerHTML=stores.map(s=>`
+      <div class="store-item" onclick="selectStore('${e(s.storeName||s.name||'')}','${e(area)}')">
+        <div>
+          <div class="store-item-name">${e(s.storeName||s.name||'')}</div>
+          <div class="store-item-addr">${e(s.address||s.addr||'')}</div>
+        </div>
+        <span style="font-size:11px;color:#aaa">선택 →</span>
+      </div>`).join('');
+  }catch(err){document.getElementById('storeModalStatus').textContent='검색 중 오류가 발생했어요.';}
+}
+
+async function selectStore(storeName, area){
+  try{
+    await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({user_id:currentUser.id,store_name:storeName,store_area:area})});
+    userSettings={store_name:storeName,store_area:area};
+    updateStoreBadge();
+    closeStoreModal();
+    addMsg('ai',`✅ 선호 매장이 **${storeName}**으로 설정됐어요! 이제 장보기 추천 시 이 매장 기준으로 안내해드릴게요.`);
+  }catch(e){alert('저장 중 오류가 발생했어요.');}
+}
 
 function updateAlerts(){
   const expired=ings.filter(i=>getExpiryInfo(i).remaining<=0&&i.qty>0);
@@ -390,13 +494,11 @@ function render(){
 function renderMenus(){
   const defaultMenus=menus.filter(m=>!m.user_id);
   const myMenus=menus.filter(m=>m.user_id===currentUser.id);
-  const dg=document.getElementById('defaultMenuGrid');
-  const mg=document.getElementById('myMenuGrid');
-  dg.innerHTML=defaultMenus.map(m=>`<div class="menu-card"><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'한식')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join('');
-  mg.innerHTML=myMenus.length?myMenus.map(m=>`<div class="menu-card mine"><button class="menu-card-del" onclick="deleteMenu('${m.id}')">✕</button><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'기타')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">아직 추가한 메뉴가 없어요</div>';
+  document.getElementById('defaultMenuGrid').innerHTML=defaultMenus.map(m=>`<div class="menu-card"><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'한식')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join('');
+  document.getElementById('myMenuGrid').innerHTML=myMenus.length?myMenus.map(m=>`<div class="menu-card mine"><button class="menu-card-del" onclick="deleteMenu('${m.id}')">✕</button><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'기타')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">아직 추가한 메뉴가 없어요</div>';
 }
 
-function e(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');}
 function setCat(cat,btn){currentCat=cat;document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');render();}
 function setMainTab(tab,btn){
   document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
@@ -415,62 +517,9 @@ async function addIng(){
   document.getElementById('iName').focus();
   await loadIngs();render();updateMenuMatch();updateAlerts();
 }
-
 async function delIng(id){
   ings=ings.filter(i=>i.id!==id);render();updateMenuMatch();updateAlerts();
   await fetch(`/api/ingredients?id=${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${currentToken}`}});
-}
-
-// 메뉴 AI 추천
-let suggestedMeat=[],suggestedVeg=[];
-async function suggestMenu(){
-  const name=document.getElementById('newMenuName').value.trim();
-  if(!name)return;
-  const btn=document.getElementById('suggestBtn');
-  btn.textContent='추천 중...';btn.classList.add('loading');btn.disabled=true;
-  try{
-    const r=await fetch('/api/suggest',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({menuName:name})});
-    const data=await r.json();
-    if(data.error){alert('AI 추천 중 오류가 발생했어요.');return;}
-    suggestedMeat=[...(data.meat||[])];
-    suggestedVeg=[...(data.veg||[])];
-    if(data.category){
-      const catEl=document.getElementById('newCat');
-      for(const opt of catEl.options){if(opt.value===data.category){catEl.value=data.category;break;}}
-    }
-    renderTags();
-    document.getElementById('suggestResult').className='suggest-result show';
-  }catch(err){alert('오류가 발생했어요.');}
-  finally{btn.textContent='AI 재료 추천';btn.classList.remove('loading');btn.disabled=false;}
-}
-
-function renderTags(){
-  document.getElementById('meatTags').innerHTML=suggestedMeat.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('meat',${i})">✕</span></span>`).join('');
-  document.getElementById('vegTags').innerHTML=suggestedVeg.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('veg',${i})">✕</span></span>`).join('');
-}
-function removeTag(type,idx){if(type==='meat')suggestedMeat.splice(idx,1);else suggestedVeg.splice(idx,1);renderTags();}
-function addTag(type){
-  const el=document.getElementById(type==='meat'?'meatInput':'vegInput');
-  const val=el.value.trim();if(!val)return;
-  if(type==='meat')suggestedMeat.push(val);else suggestedVeg.push(val);
-  el.value='';renderTags();
-}
-
-async function saveMenu(){
-  const name=document.getElementById('newMenuName').value.trim();
-  if(!name){alert('메뉴 이름을 입력해주세요.');return;}
-  const category=document.getElementById('newCat').value;
-  await fetch('/api/menus',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({name,category,meat:suggestedMeat,veg:suggestedVeg,user_id:currentUser.id})});
-  document.getElementById('newMenuName').value='';
-  document.getElementById('suggestResult').className='suggest-result';
-  suggestedMeat=[];suggestedVeg=[];
-  await loadMenus();updateMenuMatch();
-}
-
-async function deleteMenu(id){
-  if(!confirm('이 메뉴를 삭제할까요?'))return;
-  await fetch(`/api/menus?id=${id}&user_id=${currentUser.id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${currentToken}`}});
-  await loadMenus();updateMenuMatch();
 }
 
 function ctx(){
@@ -492,27 +541,89 @@ function initChat(){
   if(ings.length===0)msg+='아직 재료가 없어요. 왼쪽에서 육류/야채를 추가해보세요!';
   else{
     if(expired.length)msg+=`⚠️ ${expired.map(i=>i.name).join(', ')}이(가) 보관 기간을 초과했어요! 오늘 드시는 걸 추천해요.\n\n`;
-    msg+=`현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n위 메뉴 버튼을 클릭하거나 자유롭게 물어보세요.`;
+    msg+=`현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n`;
   }
+  if(!userSettings?.store_name)msg+='\n🏪 상단에서 선호 롯데마트 매장을 설정하면 실시간 장보기 추천도 받을 수 있어요!';
   addMsg('ai',msg);
 }
 
 function addMsg(role,text){
   const area=document.getElementById('chat'),div=document.createElement('div');
   div.className=`msg ${role==='user'?'user':'ai'}`;
-  div.innerHTML=`<div class="msg-label">${role==='user'?'나':'메뉴 플래너'}</div><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
+  div.innerHTML=`<div class="msg-label">${role==='user'?'나':'메뉴 플래너'}</div><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
   area.appendChild(div);area.scrollTop=area.scrollHeight;
 }
 function addLoading(){const area=document.getElementById('chat'),div=document.createElement('div');div.className='msg ai';div.id='loading';div.innerHTML=`<div class="msg-label">메뉴 플래너</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;area.appendChild(div);area.scrollTop=area.scrollHeight;}
 function removeLoading(){const el=document.getElementById('loading');if(el)el.remove();}
 
-async function send(){const input=document.getElementById('msgInput'),text=input.value.trim();if(!text)return;input.value='';await processMsg(text);}
+function setMainTabChat(){document.querySelector('.main-tab').click();}
+
+// 롯데마트 장보기 버튼
+async function fetchAndShop(){
+  if(!userSettings?.store_name){
+    addMsg('ai','🏪 먼저 상단에서 선호 롯데마트 매장을 설정해주세요!');
+    return;
+  }
+  // 부족한 재료 파악 후 롯데마트에서 검색
+  const neededItems=getNeededItems();
+  if(!neededItems.length){
+    qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 롯데마트에서 찾아줘');
+    return;
+  }
+  addMsg('user',`🛒 롯데마트 ${userSettings.store_name} 장보기 목록 확인해줘`);
+  addLoading();
+  addMsg('ai',`📡 롯데마트 ${userSettings.store_name}에서 상품 검색 중이에요... (시간이 조금 걸려요)`);
+
+  try{
+    // 핵심 재료 최대 3개만 검색 (속도 고려)
+    const searchItems=neededItems.slice(0,3);
+    const productResults=[];
+    for(const item of searchItems){
+      try{
+        const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(userSettings.store_name)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
+        const data=await r.json();
+        const products=(data?.data?.products||[]).slice(0,3);
+        productResults.push(...products);
+      }catch(e){}
+    }
+    removeLoading();
+    await processMsg(null, {store_name:userSettings.store_name, store_area:userSettings.store_area, products:productResults});
+  }catch(err){
+    removeLoading();
+    addMsg('ai','롯데마트 정보를 불러오는 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+  }
+}
+
+function getNeededItems(){
+  // 현재 재고에서 육류가 없거나 부족한 항목 파악
+  const meatHave=ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>i.name);
+  // 메뉴에 필요한데 없는 재료 찾기
+  const needed=new Set();
+  menus.slice(0,5).forEach(m=>{
+    (m.meat||[]).forEach(mt=>{if(!meatHave.some(h=>h.includes(mt)||mt.includes(h)))needed.add(mt);});
+  });
+  return [...needed].slice(0,3)||['돼지고기','소고기','닭고기'];
+}
+
+async function send(){
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();if(!text)return;
+  input.value='';await processMsg(text);
+}
 async function qs(text){await processMsg(text);}
 
-async function processMsg(text){
-  addMsg('user',text);chatHistory.push({role:'user',content:text});addLoading();
+async function processMsg(text, storeProducts=null){
+  if(text){addMsg('user',text);chatHistory.push({role:'user',content:text});}
+  if(!storeProducts)addLoading();
+
+  const storeInfo=storeProducts||null;
+
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({messages:chatHistory,ingredients:ctx()})});
+    const r=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},
+      body:JSON.stringify({messages:chatHistory,ingredients:ctx(),storeInfo:storeInfo?{...userSettings,...storeInfo}:userSettings})
+    });
     const data=await r.json();
     let reply=data.reply||'응답을 받지 못했어요.';
     chatHistory.push({role:'assistant',content:reply});
@@ -527,6 +638,49 @@ async function processMsg(text){
     }
     removeLoading();addMsg('ai',reply);
   }catch(err){removeLoading();addMsg('ai','오류가 발생했어요. 잠시 후 다시 시도해주세요.');}
+}
+
+// 메뉴 관리
+let suggestedMeat=[],suggestedVeg=[];
+async function suggestMenu(){
+  const name=document.getElementById('newMenuName').value.trim();if(!name)return;
+  const btn=document.getElementById('suggestBtn');
+  btn.textContent='추천 중...';btn.classList.add('loading');btn.disabled=true;
+  try{
+    const r=await fetch('/api/suggest',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({menuName:name})});
+    const data=await r.json();
+    if(data.error){alert('AI 추천 중 오류가 발생했어요.');return;}
+    suggestedMeat=[...(data.meat||[])];suggestedVeg=[...(data.veg||[])];
+    if(data.category){const catEl=document.getElementById('newCat');for(const opt of catEl.options){if(opt.value===data.category){catEl.value=data.category;break;}}}
+    renderTags();
+    document.getElementById('suggestResult').className='suggest-result show';
+  }catch(err){alert('오류가 발생했어요.');}
+  finally{btn.textContent='AI 재료 추천';btn.classList.remove('loading');btn.disabled=false;}
+}
+function renderTags(){
+  document.getElementById('meatTags').innerHTML=suggestedMeat.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('meat',${i})">✕</span></span>`).join('');
+  document.getElementById('vegTags').innerHTML=suggestedVeg.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('veg',${i})">✕</span></span>`).join('');
+}
+function removeTag(type,idx){if(type==='meat')suggestedMeat.splice(idx,1);else suggestedVeg.splice(idx,1);renderTags();}
+function addTag(type){
+  const el=document.getElementById(type==='meat'?'meatInput':'vegInput');
+  const val=el.value.trim();if(!val)return;
+  if(type==='meat')suggestedMeat.push(val);else suggestedVeg.push(val);
+  el.value='';renderTags();
+}
+async function saveMenu(){
+  const name=document.getElementById('newMenuName').value.trim();if(!name){alert('메뉴 이름을 입력해주세요.');return;}
+  const category=document.getElementById('newCat').value;
+  await fetch('/api/menus',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({name,category,meat:suggestedMeat,veg:suggestedVeg,user_id:currentUser.id})});
+  document.getElementById('newMenuName').value='';
+  document.getElementById('suggestResult').className='suggest-result';
+  suggestedMeat=[];suggestedVeg=[];
+  await loadMenus();updateMenuMatch();
+}
+async function deleteMenu(id){
+  if(!confirm('이 메뉴를 삭제할까요?'))return;
+  await fetch(`/api/menus?id=${id}&user_id=${currentUser.id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${currentToken}`}});
+  await loadMenus();updateMenuMatch();
 }
 
 restoreSession();
