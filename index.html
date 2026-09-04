@@ -139,6 +139,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="cat-tab active" onclick="setCat('all',this)">전체</button>
       <button class="cat-tab" onclick="setCat('meat',this)">🥩 육류/어류</button>
       <button class="cat-tab" onclick="setCat('veg',this)">🥦 야채</button>
+      <button class="cat-tab" onclick="setCat('etc',this)">🧀 기타재료</button>
     </div>
     <div class="ing-list" id="ingList"><div class="empty">불러오는 중...</div></div>
     <div class="add-form">
@@ -146,6 +147,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <select id="iCat" style="flex:1">
           <option value="meat">🥩 육류/어류</option>
           <option value="veg">🥦 야채</option>
+          <option value="etc">🧀 기타재료</option>
         </select>
         <select id="iStorage" style="flex:1">
           <option value="fridge">❄️ 냉장</option>
@@ -354,7 +356,7 @@ function updateAlerts() {
 
 function getMatched() {
   const meatNames = ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>i.name);
-  const vegNames  = ings.filter(i=>i.cat==='veg' &&i.qty>0).map(i=>i.name);
+  const vegNames  = ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>i.name);
   return MENUS.map(m => {
     const hasMeat  = m.meat.length===0 || m.meat.some(mt=>meatNames.some(n=>n.includes(mt)||mt.includes(n)));
     const hasVeg   = m.veg.length===0  || m.veg.every(v=>vegNames.some(n=>n.includes(v)||v.includes(n)));
@@ -395,7 +397,7 @@ function render() {
     else{cls='ok';lbl=`${remaining}일 남음`;}
     const storageLabel = storageType==='freezer'?'🧊 냉동':'❄️ 냉장';
     const storageCls   = storageType==='freezer'?'freezer-badge':'fridge-badge';
-    const icon = i.cat==='meat'?'🥩':'🥦';
+    const icon = i.cat==='meat'?'🥩':i.cat==='veg'?'🥦':'🧀';
     return `<div class="ing-item">
       <div class="ing-top">
         <div class="ing-name">${icon} ${e(i.name)}</div>
@@ -448,7 +450,7 @@ function ctx() {
     const s=i.storage_type==='freezer'?'냉동':'냉장';
     return `${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
   }).join(', ')||'없음';
-  const veg = ings.filter(i=>i.cat==='veg'&&i.qty>0).map(i=>{
+  const veg = ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>{
     const {remaining,elapsed,maxDays}=getExpiryInfo(i);
     const s=i.storage_type==='freezer'?'냉동':'냉장';
     return `${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
