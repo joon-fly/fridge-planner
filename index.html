@@ -183,20 +183,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="modal">
     <h3>🏪 롯데마트 매장 선택</h3>
     <div class="modal-search">
-      <input id="storeSearchInput" placeholder="매장명 또는 지역 (예: 잠실)" onkeydown="if(event.key==='Enter')searchStores()" />
-      <select id="storeAreaSelect">
-        <option value="서울">서울</option>
-        <option value="경기">경기</option>
-        <option value="인천">인천</option>
-        <option value="부산">부산</option>
-        <option value="대구">대구</option>
-        <option value="대전">대전</option>
-        <option value="광주">광주</option>
-        <option value="전국">전국</option>
-      </select>
-      <button class="modal-search-btn" onclick="searchStores()">검색</button>
+      <input id="storeSearchInput" placeholder="매장명 검색 (예: 잠실, 수원)" oninput="filterStores()" />
     </div>
-    <div class="modal-status" id="storeModalStatus">매장명을 입력해서 검색하세요</div>
+    <div class="modal-status" id="storeModalStatus">지역을 선택하거나 매장명을 검색하세요</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="regionTabs"></div>
     <div class="store-list" id="storeList"></div>
     <button class="modal-close" onclick="closeStoreModal()">닫기</button>
   </div>
@@ -403,39 +393,79 @@ function updateStoreBadge(){
 function setBadge(s){const b=document.getElementById('badge');b.className='badge'+(s==='saving'?' saving':s==='error'?' error':'');b.textContent=s==='saving'?'저장 중...':s==='error'?'오류':'저장됨 ✓';}
 
 // 매장 모달
-function openStoreModal(){document.getElementById('storeModal').className='modal-overlay show';}
-function closeStoreModal(){document.getElementById('storeModal').className='modal-overlay';document.getElementById('storeList').innerHTML='';}
+const LOTTE_STORES = {
+  '서울':['강변점','건대입구점','광진점','구로점','금천점','노원점','도봉점','동대문점','마포점','목동점','문래점','미아점','방학점','서대문점','성수점','송파점','수서점','양평점','영등포점','은평점','잠실점','중계점','청량리점','천호점'],
+  '경기':['가평점','고양점','광교점','광명점','구리점','군포점','김포점','남양주점','동수원점','분당점','산본점','성남점','수원점','시흥점','안산점','안양점','양주점','여주점','오산점','용인점','의왕점','의정부점','이천점','인덕원점','일산점','파주점','평택점','포천점','하남점','화성점'],
+  '인천':['간석점','계양점','구월점','논현점','동인천점','부평점','서구점','송도점','연수점','작전점','주안점'],
+  '부산':['광복점','동래점','동부산점','명장점','반여점','사상점','서부산점','수영점','연산점','온천점','장림점','해운대점'],
+  '대구':['감삼점','검단점','관문점','대구점','동대구점','상인점','성서점','수성점','율하점','칠성점'],
+  '대전':['관저점','노은점','둔산점','문화점','유성점','탄방점'],
+  '광주':['광산점','금호점','상무점','수완점','첨단점'],
+  '울산':['남울산점','동울산점','북울산점','울산점'],
+  '경남':['거제점','경남대점','김해점','마산점','밀양점','진주점','창원점','통영점'],
+  '경북':['경주점','구미점','김천점','안동점','포항점'],
+  '전남':['광양점','목포점','순천점','여수점'],
+  '전북':['군산점','익산점','전주점','정읍점'],
+  '충남':['당진점','서산점','아산점','천안점','홍성점'],
+  '충북':['청주점','충주점'],
+  '강원':['강릉점','동해점','삼척점','속초점','원주점','춘천점'],
+  '제주':['제주점','서귀포점'],
+};
+let currentRegion = '서울';
 
-async function searchStores(){
-  const keyword=document.getElementById('storeSearchInput').value.trim();
-  const area=document.getElementById('storeAreaSelect').value;
-  if(!keyword){document.getElementById('storeModalStatus').textContent='매장명을 입력해주세요.';return;}
-  document.getElementById('storeModalStatus').textContent='검색 중...';
-  document.getElementById('storeList').innerHTML='';
-  try{
-    const r=await fetch(`/api/lottemart?action=stores&keyword=${encodeURIComponent(keyword)}&area=${encodeURIComponent(area)}`);
-    const data=await r.json();
-    const stores=data?.data||data?.stores||[];
-    if(!stores.length){document.getElementById('storeModalStatus').textContent='검색 결과가 없어요.';return;}
-    document.getElementById('storeModalStatus').textContent=`${stores.length}개 매장 발견`;
-    document.getElementById('storeList').innerHTML=stores.map(s=>`
-      <div class="store-item" onclick="selectStore('${e(s.storeName||s.name||'')}','${e(area)}')">
-        <div>
-          <div class="store-item-name">${e(s.storeName||s.name||'')}</div>
-          <div class="store-item-addr">${e(s.address||s.addr||'')}</div>
-        </div>
-        <span style="font-size:11px;color:#aaa">선택 →</span>
-      </div>`).join('');
-  }catch(err){document.getElementById('storeModalStatus').textContent='검색 중 오류가 발생했어요.';}
+function openStoreModal(){
+  document.getElementById('storeModal').className='modal-overlay show';
+  renderRegionTabs();
+  renderStoreList(currentRegion);
+}
+function closeStoreModal(){
+  document.getElementById('storeModal').className='modal-overlay';
+  document.getElementById('storeSearchInput').value='';
+}
+
+function renderRegionTabs(){
+  const tabs = document.getElementById('regionTabs');
+  tabs.innerHTML = Object.keys(LOTTE_STORES).map(r =>
+    `<button onclick="selectRegion('${r}')" id="rtab-${r}" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:14px;background:${r===currentRegion?'#1a1a1a':'transparent'};color:${r===currentRegion?'#fff':'#666'};cursor:pointer">${r}</button>`
+  ).join('');
+}
+
+function selectRegion(region){
+  currentRegion = region;
+  document.getElementById('storeSearchInput').value='';
+  document.getElementById('storeModalStatus').textContent='';
+  renderRegionTabs();
+  renderStoreList(region);
+}
+
+function renderStoreList(region, keyword=''){
+  const stores = keyword
+    ? Object.entries(LOTTE_STORES).flatMap(([r,list])=>list.filter(s=>s.includes(keyword)).map(s=>({name:s,region:r})))
+    : (LOTTE_STORES[region]||[]).map(s=>({name:s,region}));
+  const el = document.getElementById('storeList');
+  if(!stores.length){el.innerHTML='<div class="modal-status">검색 결과가 없어요</div>';return;}
+  document.getElementById('storeModalStatus').textContent=`${stores.length}개 매장`;
+  el.innerHTML = stores.map(s=>`
+    <div class="store-item" onclick="selectStore('${e(s.name)}','${e(s.region)}')">
+      <div><div class="store-item-name">롯데마트 ${e(s.name)}</div><div class="store-item-addr">${e(s.region)}</div></div>
+      <span style="font-size:11px;color:#aaa">선택 →</span>
+    </div>`).join('');
+}
+
+function filterStores(){
+  const keyword = document.getElementById('storeSearchInput').value.trim();
+  if(keyword) renderStoreList('', keyword);
+  else renderStoreList(currentRegion);
 }
 
 async function selectStore(storeName, area){
+  const fullName = storeName.startsWith('롯데마트') ? storeName : `롯데마트 ${storeName}`;
   try{
-    await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({user_id:currentUser.id,store_name:storeName,store_area:area})});
-    userSettings={store_name:storeName,store_area:area};
+    await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({user_id:currentUser.id,store_name:fullName,store_area:area})});
+    userSettings={store_name:fullName,store_area:area};
     updateStoreBadge();
     closeStoreModal();
-    addMsg('ai',`✅ 선호 매장이 **${storeName}**으로 설정됐어요! 이제 장보기 추천 시 이 매장 기준으로 안내해드릴게요.`);
+    addMsg('ai',`✅ 선호 매장이 **${fullName}**으로 설정됐어요! 이제 장보기 추천 시 이 매장 기준으로 안내해드릴게요.`);
   }catch(e){alert('저장 중 오류가 발생했어요.');}
 }
 
