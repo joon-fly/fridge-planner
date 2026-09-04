@@ -589,25 +589,22 @@ function removeLoading(){const el=document.getElementById('loading');if(el)el.re
 function setMainTabChat(){document.querySelector('.main-tab').click();}
 
 // 롯데마트 장보기 버튼
-async function fetchAndShop(){
+async function fetchAndShop(userText=null){
   if(!userSettings?.store_name){
     addMsg('ai','🏪 먼저 상단에서 선호 롯데마트 매장을 설정해주세요!');
     return;
   }
-  // 부족한 재료 파악 후 롯데마트에서 검색
-  const neededItems=getNeededItems();
-  if(!neededItems.length){
-    qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 롯데마트에서 찾아줘');
-    return;
-  }
-  addMsg('user',`🛒 롯데마트 ${userSettings.store_name} 장보기 목록 확인해줘`);
+  const displayText = userText || `🛒 롯데마트 ${userSettings.store_name} 장보기 목록 확인해줘`;
+  if(!userText) addMsg('user', displayText);
   addLoading();
-  addMsg('ai',`📡 롯데마트 ${userSettings.store_name}에서 상품 검색 중이에요... (시간이 조금 걸려요)`);
+  addMsg('ai',`📡 롯데마트 ${userSettings.store_name}에서 상품 검색 중이에요... (10초 정도 걸려요)`);
+
+  // 검색할 재료: 사용자 메시지에서 재료명 추출 or 부족한 재료 자동 파악
+  const neededItems = extractItemsFromText(userText) || getNeededItems();
 
   try{
-    // 핵심 재료 최대 3개만 검색 (속도 고려)
-    const searchItems=neededItems.slice(0,3);
-    const productResults=[];
+    const searchItems = neededItems.slice(0,3);
+    const productResults = [];
     for(const item of searchItems){
       try{
         const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(userSettings.store_name)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
@@ -617,11 +614,22 @@ async function fetchAndShop(){
       }catch(e){}
     }
     removeLoading();
+    // userText가 있으면 채팅 메시지로, 없으면 기본 질문으로
+    const msgToAI = userText || '현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 롯데마트 실시간 상품 정보 기반으로 추천해줘';
+    chatHistory.push({role:'user', content: msgToAI});
     await processMsg(null, {store_name:userSettings.store_name, store_area:userSettings.store_area, products:productResults});
   }catch(err){
     removeLoading();
     addMsg('ai','롯데마트 정보를 불러오는 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
   }
+}
+
+function extractItemsFromText(text){
+  if(!text) return null;
+  // 자주 쓰는 재료명 키워드 추출
+  const keywords=['돼지','소고기','닭','계란','오징어','고등어','두부','양파','대파','감자','당근','시금치','콩나물','버섯','미역','애호박'];
+  const found = keywords.filter(k=>text.includes(k));
+  return found.length ? found : null;
 }
 
 function getNeededItems(){
@@ -635,12 +643,23 @@ function getNeededItems(){
   return [...needed].slice(0,3)||['돼지고기','소고기','닭고기'];
 }
 
+const SHOP_KEYWORDS=['장보기','장봐','마트','롯데마트','사야할','사야 할','구매','구입','살 것','살거','쇼핑','재고 확인','상품 찾'];
+
 async function send(){
   const input=document.getElementById('msgInput');
   const text=input.value.trim();if(!text)return;
-  input.value='';await processMsg(text);
+  input.value='';
+  if(isShopRequest(text)) await fetchAndShop(text);
+  else await processMsg(text);
 }
-async function qs(text){await processMsg(text);}
+async function qs(text){
+  if(isShopRequest(text)) await fetchAndShop(text);
+  else await processMsg(text);
+}
+function isShopRequest(text){
+  if(!userSettings?.store_name) return false;
+  return SHOP_KEYWORDS.some(k=>text.includes(k));
+}
 
 async function processMsg(text, storeProducts=null){
   if(text){addMsg('user',text);chatHistory.push({role:'user',content:text});}
