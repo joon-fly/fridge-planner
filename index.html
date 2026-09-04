@@ -369,12 +369,12 @@ async function loadAll(){
 }
 
 async function loadIngs(){
-  try{const r=await fetch(`/api/ingredients?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();ings=Array.isArray(d)?d:[];}
-  catch(e){ings=[];}
+  try{const r=await fetch(`/api/ingredients?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();ings=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadIngs: unexpected response',r.status,d);}
+  catch(e){ings=[];console.error('loadIngs failed:',e);}
 }
 async function loadMenus(){
-  try{const r=await fetch(`/api/menus?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();menus=Array.isArray(d)?d:[];}
-  catch(e){menus=[];}
+  try{const r=await fetch(`/api/menus?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();menus=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadMenus: unexpected response',r.status,d);}
+  catch(e){menus=[];console.error('loadMenus failed:',e);}
   renderMenus();
 }
 async function loadSettings(){
@@ -382,7 +382,7 @@ async function loadSettings(){
     const r=await fetch(`/api/settings?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`}});
     userSettings=await r.json();
     updateStoreBadge();
-  }catch(e){userSettings=null;}
+  }catch(e){userSettings=null;console.error('loadSettings failed:',e);}
 }
 
 function updateStoreBadge(){

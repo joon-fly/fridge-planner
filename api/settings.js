@@ -11,6 +11,7 @@ function getHeaders(token) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-store');
   const token = req.headers.authorization?.replace('Bearer ', '') || SUPABASE_KEY;
   const headers = getHeaders(token);
 
