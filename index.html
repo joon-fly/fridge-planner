@@ -620,14 +620,30 @@ async function fetchAndShop(){
 }
 
 function getNeededItems(){
-  // 현재 재고에서 육류가 없거나 부족한 항목 파악
+  // 현재 재고 기반으로 이번주 필요한 재료 파악
   const meatHave=ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>i.name);
-  // 메뉴에 필요한데 없는 재료 찾기
+  const vegHave=ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>i.name);
+
+  // 메뉴에 필요한 재료 수집 (있는 것 + 없는 것 모두)
   const needed=new Set();
-  menus.slice(0,5).forEach(m=>{
-    (m.meat||[]).forEach(mt=>{if(!meatHave.some(h=>h.includes(mt)||mt.includes(h)))needed.add(mt);});
+
+  // 부족한 육류 먼저
+  menus.slice(0,8).forEach(m=>{
+    (m.meat||[]).forEach(mt=>{
+      if(!meatHave.some(h=>h.includes(mt)||mt.includes(h))) needed.add(mt);
+    });
   });
-  return [...needed].slice(0,3)||['돼지고기','소고기','닭고기'];
+
+  // 없는 야채
+  menus.slice(0,5).forEach(m=>{
+    (m.veg||[]).forEach(v=>{
+      if(!vegHave.some(h=>h.includes(v)||v.includes(h))) needed.add(v);
+    });
+  });
+
+  // 아무것도 없으면 기본 재료로
+  if(!needed.size) return ['돼지고기','소고기','닭고기'];
+  return [...needed].slice(0,3);
 }
 
 async function send(){
