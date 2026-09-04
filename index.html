@@ -604,7 +604,8 @@ async function fetchAndShop(){
     const productResults = [];
     for(const item of searchItems){
       try{
-        const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(userSettings.store_name)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
+        const storeName=userSettings.store_name.replace('롯데마트 ','');
+        const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(storeName)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
         const data=await r.json();
         const products=(data?.data?.products||[]).slice(0,3);
         productResults.push(...products);
