@@ -2,6 +2,7 @@
   "rewrites": [{ "source": "/api/(.*)", "destination": "/api/$1" }],
   "functions": {
     "api/chat.js": { "maxDuration": 30 },
-    "api/suggest.js": { "maxDuration": 30 }
+    "api/suggest.js": { "maxDuration": 30 },
+    "api/lottemart.js": { "maxDuration": 60 }
   }
 }
