@@ -596,7 +596,7 @@ async function fetchAndShop(){
   }
   addMsg('user',`🛒 ${userSettings.store_name} 실시간 재고·가격 확인`);
   addLoading();
-  addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (10초 정도 걸려요)`);
+  addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (재료가 많으면 15초 정도 걸려요)`);
 
   const searchItems = getNeededItems();
   try{
@@ -605,7 +605,11 @@ async function fetchAndShop(){
       try{
         const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(storeName)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
         const data=await r.json();
-        return (data?.data?.products||[]).slice(0,3);
+        const products=data?.data?.products||[];
+        // 검색어와 실제로 무관한 상품(예: "소고기 양지" 검색인데 "고기전용 쌈장"이 걸리는 경우) 걸러내기
+        const tokens=item.split(/\s+/).filter(t=>t.length>=2);
+        const relevant=products.filter(p=>tokens.some(t=>(p.productName||'').includes(t)));
+        return relevant.slice(0,3);
       }catch(e){return [];}
     }));
     const productResults = results.flat();
@@ -626,15 +630,15 @@ function getNeededItems(){
   // 메뉴에 필요한 재료 수집 (있는 것 + 없는 것 모두)
   const needed=new Set();
 
-  // 부족한 육류 먼저
-  menus.slice(0,8).forEach(m=>{
+  // 부족한 육류 먼저 (전체 메뉴 레퍼토리 기준)
+  menus.forEach(m=>{
     (m.meat||[]).forEach(mt=>{
       if(!meatHave.some(h=>h.includes(mt)||mt.includes(h))) needed.add(mt);
     });
   });
 
   // 없는 야채
-  menus.slice(0,5).forEach(m=>{
+  menus.forEach(m=>{
     (m.veg||[]).forEach(v=>{
       if(!vegHave.some(h=>h.includes(v)||v.includes(h))) needed.add(v);
     });
@@ -653,7 +657,7 @@ function getNeededItems(){
 
   const mapped = [...needed].map(k => keywordMap[k] || k);
   if(!mapped.length) return ['돼지앞다리살','닭다리살','계란'];
-  return mapped.slice(0,8);
+  return mapped.slice(0,15);
 }
 
 async function send(){
