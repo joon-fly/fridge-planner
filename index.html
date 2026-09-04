@@ -598,19 +598,17 @@ async function fetchAndShop(){
   addLoading();
   addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (10초 정도 걸려요)`);
 
-  const neededItems = getNeededItems();
+  const searchItems = getNeededItems();
   try{
-    const searchItems = neededItems.slice(0,3);
-    const productResults = [];
-    for(const item of searchItems){
+    const storeName=userSettings.store_name.replace('롯데마트 ','');
+    const results = await Promise.all(searchItems.map(async item=>{
       try{
-        const storeName=userSettings.store_name.replace('롯데마트 ','');
         const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(storeName)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
         const data=await r.json();
-        const products=(data?.data?.products||[]).slice(0,3);
-        productResults.push(...products);
-      }catch(e){}
-    }
+        return (data?.data?.products||[]).slice(0,3);
+      }catch(e){return [];}
+    }));
+    const productResults = results.flat();
     removeLoading();
     chatHistory.push({role:'user', content:`${userSettings.store_name} 실시간 상품 정보를 기반으로 이번주 장보기 목록을 용량과 가격 포함해서 추천해줘`});
     await processMsg(null, {store_name:userSettings.store_name, store_area:userSettings.store_area, products:productResults});
@@ -655,7 +653,7 @@ function getNeededItems(){
 
   const mapped = [...needed].map(k => keywordMap[k] || k);
   if(!mapped.length) return ['돼지앞다리살','닭다리살','계란'];
-  return mapped.slice(0,3);
+  return mapped.slice(0,8);
 }
 
 async function send(){
