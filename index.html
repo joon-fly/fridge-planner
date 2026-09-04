@@ -262,7 +262,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="qbtn" onclick="qs('재고로 오늘 뭐 먹을 수 있어?')">오늘 뭐 먹지?</button>
         <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 영양 균형 맞춰서 짜줘')">주간 식단</button>
         <button class="qbtn" onclick="qs('보관 기간 지난 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
-        <button class="qbtn" onclick="fetchAndShop()">🛒 롯데마트 장보기</button>
+        <button class="qbtn" onclick="fetchAndShop()" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a">🛒 실시간 재고·가격 확인</button>
       </div>
       <div class="input-row">
         <input id="msgInput" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')send()" />
@@ -589,19 +589,16 @@ function removeLoading(){const el=document.getElementById('loading');if(el)el.re
 function setMainTabChat(){document.querySelector('.main-tab').click();}
 
 // 롯데마트 장보기 버튼
-async function fetchAndShop(userText=null){
+async function fetchAndShop(){
   if(!userSettings?.store_name){
     addMsg('ai','🏪 먼저 상단에서 선호 롯데마트 매장을 설정해주세요!');
     return;
   }
-  const displayText = userText || `🛒 롯데마트 ${userSettings.store_name} 장보기 목록 확인해줘`;
-  if(!userText) addMsg('user', displayText);
+  addMsg('user',`🛒 ${userSettings.store_name} 실시간 재고·가격 확인`);
   addLoading();
-  addMsg('ai',`📡 롯데마트 ${userSettings.store_name}에서 상품 검색 중이에요... (10초 정도 걸려요)`);
+  addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (10초 정도 걸려요)`);
 
-  // 검색할 재료: 사용자 메시지에서 재료명 추출 or 부족한 재료 자동 파악
-  const neededItems = extractItemsFromText(userText) || getNeededItems();
-
+  const neededItems = getNeededItems();
   try{
     const searchItems = neededItems.slice(0,3);
     const productResults = [];
@@ -614,22 +611,12 @@ async function fetchAndShop(userText=null){
       }catch(e){}
     }
     removeLoading();
-    // userText가 있으면 채팅 메시지로, 없으면 기본 질문으로
-    const msgToAI = userText || '현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 롯데마트 실시간 상품 정보 기반으로 추천해줘';
-    chatHistory.push({role:'user', content: msgToAI});
+    chatHistory.push({role:'user', content:`${userSettings.store_name} 실시간 상품 정보를 기반으로 이번주 장보기 목록을 용량과 가격 포함해서 추천해줘`});
     await processMsg(null, {store_name:userSettings.store_name, store_area:userSettings.store_area, products:productResults});
   }catch(err){
     removeLoading();
     addMsg('ai','롯데마트 정보를 불러오는 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
   }
-}
-
-function extractItemsFromText(text){
-  if(!text) return null;
-  // 자주 쓰는 재료명 키워드 추출
-  const keywords=['돼지','소고기','닭','계란','오징어','고등어','두부','양파','대파','감자','당근','시금치','콩나물','버섯','미역','애호박'];
-  const found = keywords.filter(k=>text.includes(k));
-  return found.length ? found : null;
 }
 
 function getNeededItems(){
@@ -643,23 +630,12 @@ function getNeededItems(){
   return [...needed].slice(0,3)||['돼지고기','소고기','닭고기'];
 }
 
-const SHOP_KEYWORDS=['장보기','장봐','마트','롯데마트','사야할','사야 할','구매','구입','살 것','살거','쇼핑','재고 확인','상품 찾'];
-
 async function send(){
   const input=document.getElementById('msgInput');
   const text=input.value.trim();if(!text)return;
-  input.value='';
-  if(isShopRequest(text)) await fetchAndShop(text);
-  else await processMsg(text);
+  input.value='';await processMsg(text);
 }
-async function qs(text){
-  if(isShopRequest(text)) await fetchAndShop(text);
-  else await processMsg(text);
-}
-function isShopRequest(text){
-  if(!userSettings?.store_name) return false;
-  return SHOP_KEYWORDS.some(k=>text.includes(k));
-}
+async function qs(text){await processMsg(text);}
 
 async function processMsg(text, storeProducts=null){
   if(text){addMsg('user',text);chatHistory.push({role:'user',content:text});}
