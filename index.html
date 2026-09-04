@@ -7,8 +7,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
-
-/* 로그인 화면 */
 .login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f0}
 .login-box{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.08)}
 .login-logo{font-size:32px;text-align:center;margin-bottom:8px}
@@ -19,8 +17,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-btn{width:100%;font-size:15px;padding:12px;border:none;border-radius:10px;background:#1a1a1a;color:#fff;cursor:pointer;font-weight:600;margin-top:4px}
 .login-btn:hover{background:#333}
 .login-error{font-size:12px;color:#c0392b;text-align:center;margin-top:10px;min-height:18px}
-
-/* 앱 화면 */
 .app{display:none;grid-template-columns:300px 1fr;min-height:100vh}
 .app.visible{display:grid}
 .sidebar{background:#fafaf7;border-right:1px solid #e8e8e0;display:flex;flex-direction:column}
@@ -36,9 +32,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stat{background:#fff;border-radius:10px;padding:8px 10px;text-align:center;border:1px solid #ebebeb}
 .stat-num{font-size:20px;font-weight:600;line-height:1}
 .stat-label{font-size:10px;color:#888;margin-top:3px}
-.green{color:#2d7a3a}.amber{color:#9a6f00}.red{color:#c0392b}
+.green{color:#2d7a3a}.amber{color:#9a6f00}
 .cat-tabs{display:flex;border-bottom:1px solid #e8e8e0}
-.cat-tab{flex:1;font-size:12px;padding:8px 4px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2px solid transparent}
+.cat-tab{flex:1;font-size:11px;padding:8px 2px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2px solid transparent}
 .cat-tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:600}
 .ing-list{flex:1;overflow-y:auto;padding:8px}
 .ing-item{background:#fff;border:1px solid #ebebeb;border-radius:10px;padding:9px 12px;margin-bottom:6px}
@@ -60,24 +56,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .add-btn:hover{background:#333}
 .del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;flex-shrink:0}
 .del-btn:hover{color:#e74c3c}
-.main{display:flex;flex-direction:column;background:#fff}
-.main-header{padding:14px 20px;border-bottom:1px solid #ebebeb;display:flex;align-items:center;gap:10px}
+.main{display:flex;flex-direction:column;background:#fff;overflow:hidden}
+.main-header{padding:14px 20px;border-bottom:1px solid #ebebeb;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .main-header h1{font-size:16px;font-weight:600}
 .user-info{font-size:11px;color:#aaa;margin-left:4px}
-.tabs{display:flex;gap:4px;margin-left:auto}
-.tab{font-size:12px;padding:5px 12px;border:1px solid #ddd;border-radius:20px;cursor:pointer;background:transparent;color:#666}
-.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.alert-bar{padding:8px 20px;background:#fdecea;border-bottom:1px solid #f5c6cb;display:none}
+.main-tabs{display:flex;gap:4px;margin-left:auto}
+.main-tab{font-size:12px;padding:5px 12px;border:1px solid #ddd;border-radius:20px;cursor:pointer;background:transparent;color:#666}
+.main-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden}
+.panel.active{display:flex}
+
+/* 메뉴 추천 패널 */
+.alert-bar{padding:8px 20px;background:#fdecea;border-bottom:1px solid #f5c6cb;display:none;flex-shrink:0}
 .alert-bar.show{display:block}
 .alert-text{font-size:12px;color:#c0392b}
-.menu-match-bar{padding:10px 20px;border-bottom:1px solid #ebebeb}
+.menu-match-bar{padding:10px 20px;border-bottom:1px solid #ebebeb;flex-shrink:0}
 .match-label{font-size:11px;color:#888;margin-bottom:6px}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
 .chip{font-size:11px;padding:3px 10px;border-radius:14px;border:1px solid #ebebeb;cursor:pointer;background:#f5f5f0;color:#555}
 .chip.full{background:#e6f4ea;color:#2d7a3a;border-color:#c3e6cb}
 .chip.partial{background:#fff8e1;color:#9a6f00;border-color:#ffeaa0}
 .chip:hover{border-color:#aaa}
-.chat{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;min-height:300px}
+.chat{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
 .msg{max-width:90%}
 .msg.user{align-self:flex-end}
 .msg-label{font-size:11px;color:#aaa;margin-bottom:4px}
@@ -85,14 +85,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bubble{padding:10px 14px;font-size:14px;line-height:1.65;border-radius:18px}
 .msg.user .bubble{background:#1a1a1a;color:#fff;border-radius:18px 18px 4px 18px}
 .msg.ai .bubble{background:#f5f5f0;border:1px solid #ebebeb;border-radius:18px 18px 18px 4px}
-.quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px;border-top:1px solid #ebebeb}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px;border-top:1px solid #ebebeb;flex-shrink:0}
 .qbtn{font-size:12px;padding:5px 12px;border:1px solid #ddd;border-radius:14px;background:transparent;cursor:pointer;color:#555}
 .qbtn:hover{background:#f5f5f0}
-.input-row{display:flex;gap:8px;padding:12px 20px;border-top:1px solid #ebebeb}
+.input-row{display:flex;gap:8px;padding:12px 20px;border-top:1px solid #ebebeb;flex-shrink:0}
 .input-row input{flex:1;font-size:14px;padding:9px 15px;border:1px solid #ddd;border-radius:22px;outline:none}
 .input-row input:focus{border-color:#aaa}
 .send-btn{font-size:13px;padding:9px 16px;border-radius:22px;border:none;background:#1a1a1a;color:#fff;cursor:pointer}
 .send-btn:hover{background:#333}
+
+/* 메뉴 관리 패널 */
+.menu-panel-inner{flex:1;overflow-y:auto;padding:16px 20px}
+.menu-section-title{font-size:13px;font-weight:600;color:#888;margin-bottom:10px;margin-top:16px}
+.menu-section-title:first-child{margin-top:0}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:8px}
+.menu-card{background:#f5f5f0;border:1px solid #ebebeb;border-radius:10px;padding:10px 12px;position:relative}
+.menu-card.mine{background:#fff;border-color:#ddd}
+.menu-card-name{font-size:13px;font-weight:600}
+.menu-card-cat{font-size:10px;color:#888;margin-top:3px}
+.menu-card-ingredients{font-size:10px;color:#aaa;margin-top:4px;line-height:1.5}
+.menu-card-del{position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:#ccc;font-size:12px}
+.menu-card-del:hover{color:#e74c3c}
+.add-menu-box{background:#fff;border:1px solid #ebebeb;border-radius:12px;padding:16px;margin-top:8px}
+.add-menu-box h3{font-size:14px;font-weight:600;margin-bottom:12px}
+.add-menu-search{display:flex;gap:8px;margin-bottom:12px}
+.add-menu-search input{flex:1;font-size:13px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;outline:none}
+.suggest-btn{font-size:12px;padding:8px 14px;border:none;border-radius:8px;background:#f5f5f0;cursor:pointer;white-space:nowrap;color:#555}
+.suggest-btn:hover{background:#ebebeb}
+.suggest-btn.loading{opacity:0.6;cursor:default}
+.suggest-result{background:#f9f9f7;border:1px solid #ebebeb;border-radius:10px;padding:14px;margin-bottom:12px;display:none}
+.suggest-result.show{display:block}
+.suggest-field{margin-bottom:8px}
+.suggest-field label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+.suggest-field input,.suggest-field select{width:100%;font-size:13px;padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;outline:none}
+.suggest-field .tag-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;background:#e8f4fd;color:#1a6fa6;display:flex;align-items:center;gap:4px}
+.tag-del{cursor:pointer;color:#aaa;font-size:12px}
+.tag-del:hover{color:#e74c3c}
+.tag-input{font-size:12px;padding:3px 8px;border:1px solid #ddd;border-radius:8px;width:100px;outline:none}
+.confirm-btn{width:100%;font-size:13px;padding:9px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;cursor:pointer}
+.confirm-btn:hover{background:#333}
+
 .dots{display:inline-flex;gap:4px;align-items:center}
 .dots span{width:6px;height:6px;border-radius:50%;background:#aaa;animation:p 1.2s ease-in-out infinite}
 .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
@@ -107,7 +140,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </head>
 <body>
 
-<!-- 로그인 화면 -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">🧊</div>
@@ -120,7 +152,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- 앱 화면 -->
 <div class="app" id="app">
   <div class="sidebar">
     <div class="sidebar-header">
@@ -137,9 +168,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="cat-tabs">
       <button class="cat-tab active" onclick="setCat('all',this)">전체</button>
-      <button class="cat-tab" onclick="setCat('meat',this)">🥩 육류/어류</button>
+      <button class="cat-tab" onclick="setCat('meat',this)">🥩 육류</button>
       <button class="cat-tab" onclick="setCat('veg',this)">🥦 야채</button>
-      <button class="cat-tab" onclick="setCat('etc',this)">🧀 기타재료</button>
+      <button class="cat-tab" onclick="setCat('etc',this)">🧀 기타</button>
     </div>
     <div class="ing-list" id="ingList"><div class="empty">불러오는 중...</div></div>
     <div class="add-form">
@@ -165,368 +196,331 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div class="main">
     <div class="main-header">
-      <h1>🍳 메뉴 추천</h1>
+      <h1>🍳 메뉴 플래너</h1>
       <span class="user-info" id="userInfo"></span>
-      <div class="tabs">
-        <button class="tab active" onclick="setTab('chat',this)">대화</button>
-        <button class="tab" onclick="setTab('weekly',this)">주간 계획</button>
-        <button class="tab" onclick="setTab('shopping',this)">구매 추천</button>
+      <div class="main-tabs">
+        <button class="main-tab active" onclick="setMainTab('recommend',this)">메뉴 추천</button>
+        <button class="main-tab" onclick="setMainTab('manage',this)">메뉴 관리</button>
       </div>
     </div>
-    <div class="alert-bar" id="alertBar"><div class="alert-text" id="alertText"></div></div>
-    <div class="menu-match-bar">
-      <div class="match-label">재고로 만들 수 있는 메뉴 <span id="matchCount" style="font-weight:600;color:#1a1a1a">0개</span></div>
-      <div class="chips" id="menuChips"><span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span></div>
+
+    <!-- 메뉴 추천 패널 -->
+    <div class="panel active" id="panel-recommend">
+      <div class="alert-bar" id="alertBar"><div class="alert-text" id="alertText"></div></div>
+      <div class="menu-match-bar">
+        <div class="match-label">재고로 만들 수 있는 메뉴 <span id="matchCount" style="font-weight:600;color:#1a1a1a">0개</span></div>
+        <div class="chips" id="menuChips"><span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span></div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div class="quick">
+        <button class="qbtn" onclick="qs('재고로 오늘 뭐 먹을 수 있어?')">오늘 뭐 먹지?</button>
+        <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 영양 균형 맞춰서 짜줘')">주간 식단</button>
+        <button class="qbtn" onclick="qs('보관 기간 지난 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
+        <button class="qbtn" onclick="qs('추가로 사면 좋을 재료 추천해줘')">장보기 추천</button>
+      </div>
+      <div class="input-row">
+        <input id="msgInput" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')send()" />
+        <button class="send-btn" onclick="send()">전송 →</button>
+      </div>
     </div>
-    <div class="chat" id="chat"></div>
-    <div class="quick">
-      <button class="qbtn" onclick="qs('재고로 오늘 뭐 먹을 수 있어?')">오늘 뭐 먹지?</button>
-      <button class="qbtn" onclick="qs('이번주 7일 식단을 재료 낭비 없이 영양 균형 맞춰서 짜줘')">주간 식단 짜줘</button>
-      <button class="qbtn" onclick="qs('보관 기간 지난 재료부터 쓰는 메뉴 알려줘')">급한 재료 먼저</button>
-      <button class="qbtn" onclick="qs('추가로 사면 좋을 재료 추천해줘')">장보기 추천</button>
-      <button class="qbtn" onclick="qs('재료 사용 후 재고 업데이트 하고 싶어')">재고 업데이트</button>
-    </div>
-    <div class="input-row">
-      <input id="msgInput" placeholder="메시지를 입력하세요..." onkeydown="if(event.key==='Enter')send()" />
-      <button class="send-btn" onclick="send()">전송 →</button>
+
+    <!-- 메뉴 관리 패널 -->
+    <div class="panel" id="panel-manage">
+      <div class="menu-panel-inner">
+        <div class="menu-section-title">기본 메뉴</div>
+        <div class="menu-grid" id="defaultMenuGrid"><div class="empty">불러오는 중...</div></div>
+        <div class="menu-section-title">내가 추가한 메뉴</div>
+        <div class="menu-grid" id="myMenuGrid"><div class="empty" style="grid-column:1/-1">아직 추가한 메뉴가 없어요</div></div>
+
+        <div class="add-menu-box">
+          <h3>➕ 새 메뉴 추가</h3>
+          <div class="add-menu-search">
+            <input id="newMenuName" placeholder="메뉴 이름 입력 (예: 우동)" onkeydown="if(event.key==='Enter')suggestMenu()" />
+            <button class="suggest-btn" id="suggestBtn" onclick="suggestMenu()">AI 재료 추천</button>
+          </div>
+          <div class="suggest-result" id="suggestResult">
+            <div class="suggest-field">
+              <label>카테고리</label>
+              <select id="newCat">
+                <option value="한식">한식</option>
+                <option value="일식">일식</option>
+                <option value="양식">양식</option>
+                <option value="중식">중식</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="suggest-field">
+              <label>육류/어류 재료</label>
+              <div class="tag-list" id="meatTags"></div>
+              <input class="tag-input" id="meatInput" placeholder="+ 추가" onkeydown="if(event.key==='Enter')addTag('meat')" />
+            </div>
+            <div class="suggest-field">
+              <label>야채/기타 재료</label>
+              <div class="tag-list" id="vegTags"></div>
+              <input class="tag-input" id="vegInput" placeholder="+ 추가" onkeydown="if(event.key==='Enter')addTag('veg')" />
+            </div>
+            <button class="confirm-btn" onclick="saveMenu()">메뉴 등록하기</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 const STORAGE_DAYS = {
-  fridge: {
-    '돼지':3,'삼겹살':3,'목살':3,'앞다리':3,'뒷다리':3,
-    '소':4,'양지':4,'사태':4,'우둔':4,'목심':4,'불고기':4,
-    '닭':2,'닭다리':2,'닭볶음':2,
-    '계란':21,
-    '오징어':1,'고등어':1,'멸치':14,'햄':7,'소시지':7,'메추리알':14,
-    '양파':14,'대파':7,'감자':14,'당근':14,'두부':3,
-    '애호박':5,'버섯':5,'콩나물':3,'시금치':3,'미역':14,
-    '무':10,'순두부':2,'양배추':7,'고구마':14,
-  },
-  freezer: {
-    '돼지':90,'삼겹살':90,'목살':90,'앞다리':90,'뒷다리':90,
-    '소':90,'양지':90,'사태':90,'우둔':90,'목심':90,'불고기':90,
-    '닭':90,'닭다리':90,'닭볶음':90,
-    '계란':30,'오징어':60,'고등어':60,'멸치':60,'햄':30,'소시지':30,'메추리알':30,
-    '두부':30,'시금치':30,'콩나물':30,'버섯':30,
-  }
+  fridge: {'돼지':3,'삼겹살':3,'목살':3,'앞다리':3,'뒷다리':3,'소':4,'양지':4,'사태':4,'우둔':4,'목심':4,'불고기':4,'닭':2,'닭다리':2,'닭볶음':2,'계란':21,'오징어':1,'고등어':1,'멸치':14,'햄':7,'소시지':7,'메추리알':14,'양파':14,'대파':7,'감자':14,'당근':14,'두부':3,'애호박':5,'버섯':5,'콩나물':3,'시금치':3,'미역':14,'무':10,'순두부':2,'양배추':7,'고구마':14},
+  freezer: {'돼지':90,'삼겹살':90,'목살':90,'앞다리':90,'뒷다리':90,'소':90,'양지':90,'사태':90,'우둔':90,'목심':90,'불고기':90,'닭':90,'닭다리':90,'닭볶음':90,'계란':30,'오징어':60,'고등어':60,'멸치':60,'햄':30,'소시지':30,'메추리알':30,'두부':30,'시금치':30,'콩나물':30,'버섯':30}
 };
+function getMaxDays(name,st){const t=STORAGE_DAYS[st]||STORAGE_DAYS.fridge;for(const k of Object.keys(t)){if(name.includes(k))return t[k];}return st==='freezer'?60:7;}
+function getDaysElapsed(ca){return Math.floor((new Date()-new Date(ca))/86400000);}
+function getExpiryInfo(i){const e=getDaysElapsed(i.created_at),m=getMaxDays(i.name,i.storage_type||'fridge');return{elapsed:e,maxDays:m,remaining:m-e};}
 
-function getMaxDays(name, storageType) {
-  const table = STORAGE_DAYS[storageType] || STORAGE_DAYS.fridge;
-  for (const key of Object.keys(table)) { if (name.includes(key)) return table[key]; }
-  return storageType === 'freezer' ? 60 : 7;
-}
-function getDaysElapsed(createdAt) {
-  return Math.floor((new Date() - new Date(createdAt)) / 86400000);
-}
-function getExpiryInfo(ing) {
-  const elapsed = getDaysElapsed(ing.created_at);
-  const maxDays = getMaxDays(ing.name, ing.storage_type || 'fridge');
-  return { elapsed, maxDays, remaining: maxDays - elapsed };
-}
+let currentUser=null,currentToken=null,ings=[],menus=[],chatHistory=[],currentCat='all';
 
-const MENUS = [
-  {menu:"김치찌개",  meat:["돼지 앞다리살","돼지 목살","돼지 삼겹살"], veg:["두부","양파","대파"]},
-  {menu:"된장찌개",  meat:[],                                           veg:["두부","애호박","양파","감자","버섯"]},
-  {menu:"제육볶음",  meat:["돼지 앞다리살","돼지 목살"],                veg:["양파","대파"]},
-  {menu:"불고기",    meat:["소 목심","소 불고기용 앞다리"],             veg:["양파","대파","당근"]},
-  {menu:"닭볶음탕",  meat:["닭볶음탕용 닭"],                            veg:["감자","당근","양파","대파"]},
-  {menu:"카레라이스",meat:["돼지 앞다리살","돼지 뒷다리살"],            veg:["감자","당근","양파"]},
-  {menu:"오징어볶음",meat:["오징어"],                                   veg:["양파","대파","당근"]},
-  {menu:"계란말이",  meat:["계란"],                                     veg:["대파","당근"]},
-  {menu:"계란찜",    meat:["계란"],                                     veg:["대파"]},
-  {menu:"콩나물국",  meat:[],                                           veg:["콩나물","대파"]},
-  {menu:"미역국",    meat:["소 양지","소 국거리"],                      veg:["미역"]},
-  {menu:"소고기무국",meat:["소 양지","소 국거리"],                      veg:["무","대파"]},
-  {menu:"순두부찌개",meat:["돼지 앞다리살","계란"],                     veg:["순두부","양파","대파"]},
-  {menu:"부대찌개",  meat:["햄","소시지"],                              veg:["두부","양파","대파"]},
-  {menu:"감자조림",  meat:[],                                           veg:["감자"]},
-  {menu:"멸치볶음",  meat:["멸치"],                                     veg:[]},
-  {menu:"장조림",    meat:["소 사태","소 우둔살","메추리알"],           veg:[]},
-  {menu:"고등어구이",meat:["고등어"],                                   veg:[]},
-  {menu:"닭갈비",    meat:["닭다리살"],                                 veg:["양배추","고구마","양파","대파"]},
-  {menu:"비빔밥",    meat:["계란"],                                     veg:["시금치","콩나물","당근"]},
-];
-
-// 세션 상태
-let currentUser = null;
-let currentToken = null;
-let ings = [], history = [], currentCat = 'all';
-
-// 로그인/로그아웃
-async function login() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  errEl.textContent = '';
-  if (!email || !password) { errEl.textContent = '이메일과 비밀번호를 입력해주세요.'; return; }
-
-  try {
-    const r = await fetch('/api/auth', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action: 'login', email, password })
-    });
-    const data = await r.json();
-    if (data.error) { errEl.textContent = data.error; return; }
-
-    currentUser = data.user;
-    currentToken = data.access_token;
-    sessionStorage.setItem('token', currentToken);
-    sessionStorage.setItem('user', JSON.stringify(currentUser));
+// 로그인
+async function login(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
+  errEl.textContent='';
+  if(!email||!password){errEl.textContent='이메일과 비밀번호를 입력해주세요.';return;}
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email,password})});
+    const data=await r.json();
+    if(data.error){errEl.textContent=data.error;return;}
+    currentUser=data.user;currentToken=data.access_token;
+    sessionStorage.setItem('token',currentToken);sessionStorage.setItem('user',JSON.stringify(currentUser));
     showApp();
-  } catch(e) {
-    errEl.textContent = '로그인 중 오류가 발생했어요.';
-  }
+  }catch(e){errEl.textContent='로그인 중 오류가 발생했어요.';}
+}
+function logout(){
+  sessionStorage.removeItem('token');sessionStorage.removeItem('user');
+  currentUser=null;currentToken=null;ings=[];menus=[];chatHistory=[];
+  document.getElementById('app').className='app';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginEmail').value='';document.getElementById('loginPassword').value='';
+}
+function showApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').className='app visible';
+  document.getElementById('userInfo').textContent=currentUser.email;
+  loadAll();
+}
+function restoreSession(){
+  const token=sessionStorage.getItem('token'),user=sessionStorage.getItem('user');
+  if(token&&user){currentToken=token;currentUser=JSON.parse(user);showApp();}
 }
 
-function logout() {
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('user');
-  currentUser = null; currentToken = null; ings = []; history = [];
-  document.getElementById('app').className = 'app';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginEmail').value = '';
-  document.getElementById('loginPassword').value = '';
+async function authFetch(path,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(path,opts);return r.json();
 }
 
-function showApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').className = 'app visible';
-  document.getElementById('userInfo').textContent = currentUser.email;
-  load();
+async function loadAll(){
+  await Promise.all([loadIngs(),loadMenus()]);
+  render();updateMenuMatch();updateAlerts();initChat();setBadge('saved');
 }
 
-// 세션 복원
-function restoreSession() {
-  const token = sessionStorage.getItem('token');
-  const user = sessionStorage.getItem('user');
-  if (token && user) {
-    currentToken = token;
-    currentUser = JSON.parse(user);
-    showApp();
-  }
+async function loadIngs(){
+  try{const r=await fetch(`/api/ingredients?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();ings=Array.isArray(d)?d:[];}
+  catch(e){ings=[];}
+}
+async function loadMenus(){
+  try{const r=await fetch(`/api/menus?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();menus=Array.isArray(d)?d:[];}
+  catch(e){menus=[];}
+  renderMenus();
 }
 
-async function apiCall(path, method='GET', body=null) {
-  const opts = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${currentToken}`
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(path, opts);
-  return r.json();
+function setBadge(s){const b=document.getElementById('badge');b.className='badge'+(s==='saving'?' saving':s==='error'?' error':'');b.textContent=s==='saving'?'저장 중...':s==='error'?'오류':'저장됨 ✓';}
+
+function updateAlerts(){
+  const expired=ings.filter(i=>getExpiryInfo(i).remaining<=0&&i.qty>0);
+  const urgent=ings.filter(i=>{const r=getExpiryInfo(i).remaining;return i.qty>0&&r>0&&r<=2;});
+  const bar=document.getElementById('alertBar'),txt=document.getElementById('alertText'),msgs=[];
+  if(expired.length)msgs.push(`⚠️ 보관 기간 초과: ${expired.map(i=>i.name).join(', ')} — 빨리 드세요!`);
+  if(urgent.length)msgs.push(`🔔 곧 소진 필요 (2일 이내): ${urgent.map(i=>i.name).join(', ')}`);
+  bar.className=msgs.length?'alert-bar show':'alert-bar';txt.innerHTML=msgs.join('<br>');
 }
 
-async function load() {
-  try {
-    // user_id로 본인 재료만 필터링
-    const r = await fetch(`/api/ingredients?user_id=${currentUser.id}`, {
-      headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' }
-    });
-    const data = await r.json();
-    ings = Array.isArray(data) ? data : [];
-  } catch(e) { ings = []; }
-  render(); updateMenuMatch(); updateAlerts(); initChat(); setBadge('saved');
-}
-
-function setBadge(s) {
-  const b = document.getElementById('badge');
-  b.className = 'badge'+(s==='saving'?' saving':s==='error'?' error':'');
-  b.textContent = s==='saving'?'저장 중...':s==='error'?'오류':'저장됨 ✓';
-}
-
-function updateAlerts() {
-  const expired = ings.filter(i => getExpiryInfo(i).remaining <= 0 && i.qty > 0);
-  const urgent  = ings.filter(i => { const r = getExpiryInfo(i).remaining; return i.qty>0 && r>0 && r<=2; });
-  const bar = document.getElementById('alertBar');
-  const txt = document.getElementById('alertText');
-  const msgs = [];
-  if (expired.length) msgs.push(`⚠️ 보관 기간 초과: ${expired.map(i=>i.name).join(', ')} — 빨리 드세요!`);
-  if (urgent.length)  msgs.push(`🔔 곧 소진 필요 (2일 이내): ${urgent.map(i=>i.name).join(', ')}`);
-  bar.className = msgs.length ? 'alert-bar show' : 'alert-bar';
-  txt.innerHTML = msgs.join('<br>');
-}
-
-function getMatched() {
-  const meatNames = ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>i.name);
-  const vegNames  = ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>i.name);
-  return MENUS.map(m => {
-    const hasMeat  = m.meat.length===0 || m.meat.some(mt=>meatNames.some(n=>n.includes(mt)||mt.includes(n)));
-    const hasVeg   = m.veg.length===0  || m.veg.every(v=>vegNames.some(n=>n.includes(v)||v.includes(n)));
-    const partMeat = m.meat.length===0 || m.meat.some(mt=>meatNames.some(n=>n.includes(mt)||mt.includes(n)));
-    const partVeg  = m.veg.some(v=>vegNames.some(n=>n.includes(v)||v.includes(n)));
-    if (hasMeat && hasVeg) return {menu:m.menu, level:'full'};
-    if (partMeat && (partVeg||m.veg.length===0)) return {menu:m.menu, level:'partial'};
+function getMatched(){
+  const meatNames=ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>i.name);
+  const vegNames=ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>i.name);
+  return menus.map(m=>{
+    const mMeat=m.meat||[],mVeg=m.veg||[];
+    const hasMeat=mMeat.length===0||mMeat.some(mt=>meatNames.some(n=>n.includes(mt)||mt.includes(n)));
+    const hasVeg=mVeg.length===0||mVeg.every(v=>vegNames.some(n=>n.includes(v)||v.includes(n)));
+    const partMeat=mMeat.length===0||mMeat.some(mt=>meatNames.some(n=>n.includes(mt)||mt.includes(n)));
+    const partVeg=mVeg.some(v=>vegNames.some(n=>n.includes(v)||v.includes(n)));
+    if(hasMeat&&hasVeg)return{menu:m.name,level:'full'};
+    if(partMeat&&(partVeg||mVeg.length===0))return{menu:m.name,level:'partial'};
     return null;
   }).filter(Boolean);
 }
 
-function updateMenuMatch() {
-  const matched = getMatched();
-  const full = matched.filter(m=>m.level==='full');
-  const partial = matched.filter(m=>m.level==='partial');
-  document.getElementById('menuCount').textContent = full.length;
-  document.getElementById('matchCount').textContent = `${full.length}개 완성, ${partial.length}개 거의 가능`;
-  const chips = document.getElementById('menuChips');
-  if (!matched.length) { chips.innerHTML='<span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span>'; return; }
-  chips.innerHTML = [...full,...partial].map(m=>
-    `<span class="chip ${m.level}" onclick="qs('${m.menu} 만드는 법이랑 필요한 재료 알려줘')">${m.menu}${m.level==='full'?'':'*'}</span>`
-  ).join('');
+function updateMenuMatch(){
+  const matched=getMatched(),full=matched.filter(m=>m.level==='full'),partial=matched.filter(m=>m.level==='partial');
+  document.getElementById('menuCount').textContent=full.length;
+  document.getElementById('matchCount').textContent=`${full.length}개 완성, ${partial.length}개 거의 가능`;
+  const chips=document.getElementById('menuChips');
+  if(!matched.length){chips.innerHTML='<span style="font-size:11px;color:#aaa">재료를 추가하면 가능한 메뉴가 표시돼요</span>';return;}
+  chips.innerHTML=[...full,...partial].map(m=>`<span class="chip ${m.level}" onclick="qs('${m.menu} 만드는 법이랑 필요한 재료 알려줘')">${m.menu}${m.level==='full'?'':'*'}</span>`).join('');
 }
 
-function render() {
-  const warnCount = ings.filter(i => { const r=getExpiryInfo(i).remaining; return i.qty>0 && r<=2; }).length;
-  document.getElementById('totalCount').textContent = ings.filter(i=>i.qty>0).length;
-  document.getElementById('warnCount').textContent = warnCount;
-  const el = document.getElementById('ingList');
-  const filtered = currentCat==='all' ? ings : ings.filter(i=>i.cat===currentCat);
-  if (!filtered.length) { el.innerHTML='<div class="empty">재료를 추가해보세요 👇</div>'; return; }
-  el.innerHTML = [...filtered].sort((a,b)=>getExpiryInfo(a).remaining-getExpiryInfo(b).remaining).map(i => {
-    const {elapsed,maxDays,remaining} = getExpiryInfo(i);
-    const storageType = i.storage_type||'fridge';
-    let cls='ok', lbl='';
+function render(){
+  const wc=ings.filter(i=>{const r=getExpiryInfo(i).remaining;return i.qty>0&&r<=2;}).length;
+  document.getElementById('totalCount').textContent=ings.filter(i=>i.qty>0).length;
+  document.getElementById('warnCount').textContent=wc;
+  const el=document.getElementById('ingList');
+  const filtered=currentCat==='all'?ings:ings.filter(i=>i.cat===currentCat);
+  if(!filtered.length){el.innerHTML='<div class="empty">재료를 추가해보세요 👇</div>';return;}
+  el.innerHTML=[...filtered].sort((a,b)=>getExpiryInfo(a).remaining-getExpiryInfo(b).remaining).map(i=>{
+    const{elapsed,maxDays,remaining}=getExpiryInfo(i),st=i.storage_type||'fridge';
+    let cls='ok',lbl='';
     if(remaining<=0){cls='danger';lbl=`${Math.abs(remaining)}일 초과!`;}
     else if(remaining<=2){cls='warn';lbl=`${remaining}일 남음 ⚠️`;}
     else{cls='ok';lbl=`${remaining}일 남음`;}
-    const storageLabel = storageType==='freezer'?'🧊 냉동':'❄️ 냉장';
-    const storageCls   = storageType==='freezer'?'freezer-badge':'fridge-badge';
-    const icon = i.cat==='meat'?'🥩':i.cat==='veg'?'🥦':'🧀';
-    return `<div class="ing-item">
-      <div class="ing-top">
-        <div class="ing-name">${icon} ${e(i.name)}</div>
-        <button class="del-btn" onclick="delIng('${i.id}')" aria-label="삭제">✕</button>
-      </div>
-      <div class="ing-meta">
-        <span>${i.qty}${e(i.unit)}</span>
-        <span class="storage-badge ${storageCls}">${storageLabel}</span>
-        <span class="expiry-chip ${cls}">${lbl}</span>
-      </div>
-      <div style="font-size:10px;color:#bbb;margin-top:3px">${elapsed}일째 보관 중 (적정 ${maxDays}일)</div>
-    </div>`;
+    const icon=i.cat==='meat'?'🥩':i.cat==='veg'?'🥦':'🧀';
+    const sl=st==='freezer'?'🧊 냉동':'❄️ 냉장',sc=st==='freezer'?'freezer-badge':'fridge-badge';
+    return `<div class="ing-item"><div class="ing-top"><div class="ing-name">${icon} ${e(i.name)}</div><button class="del-btn" onclick="delIng('${i.id}')">✕</button></div><div class="ing-meta"><span>${i.qty}${e(i.unit)}</span><span class="storage-badge ${sc}">${sl}</span><span class="expiry-chip ${cls}">${lbl}</span></div><div style="font-size:10px;color:#bbb;margin-top:3px">${elapsed}일째 보관 중 (적정 ${maxDays}일)</div></div>`;
   }).join('');
+}
+
+function renderMenus(){
+  const defaultMenus=menus.filter(m=>!m.user_id);
+  const myMenus=menus.filter(m=>m.user_id===currentUser.id);
+  const dg=document.getElementById('defaultMenuGrid');
+  const mg=document.getElementById('myMenuGrid');
+  dg.innerHTML=defaultMenus.map(m=>`<div class="menu-card"><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'한식')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join('');
+  mg.innerHTML=myMenus.length?myMenus.map(m=>`<div class="menu-card mine"><button class="menu-card-del" onclick="deleteMenu('${m.id}')">✕</button><div class="menu-card-name">${e(m.name)}</div><div class="menu-card-cat">${e(m.category||'기타')}</div><div class="menu-card-ingredients">${[...(m.meat||[]),...(m.veg||[])].slice(0,3).join(', ')}${([...(m.meat||[]),...(m.veg||[])].length>3?'...':'')}</div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">아직 추가한 메뉴가 없어요</div>';
 }
 
 function e(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function setCat(cat,btn){currentCat=cat;document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');render();}
+function setMainTab(tab,btn){
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
 
-async function addIng() {
-  const name = document.getElementById('iName').value.trim();
-  if (!name) return;
-  const cat          = document.getElementById('iCat').value;
-  const storage_type = document.getElementById('iStorage').value;
-  const qty          = parseFloat(document.getElementById('iQty').value)||1;
-  const unit         = document.getElementById('iUnit').value.trim()||(cat==='meat'?'g':'개');
+async function addIng(){
+  const name=document.getElementById('iName').value.trim();if(!name)return;
+  const cat=document.getElementById('iCat').value,st=document.getElementById('iStorage').value;
+  const qty=parseFloat(document.getElementById('iQty').value)||1;
+  const unit=document.getElementById('iUnit').value.trim()||(cat==='meat'?'g':'개');
   setBadge('saving');
-  await fetch('/api/ingredients', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${currentToken}` },
-    body: JSON.stringify({ name, cat, storage_type, qty, unit, user_id: currentUser.id })
-  });
+  await fetch('/api/ingredients',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({name,cat,storage_type:st,qty,unit,user_id:currentUser.id})});
   ['iName','iQty','iUnit'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('iName').focus();
-  await load();
+  await loadIngs();render();updateMenuMatch();updateAlerts();
 }
 
-async function delIng(id) {
-  ings = ings.filter(i=>i.id!==id);
-  render(); updateMenuMatch(); updateAlerts();
-  await fetch(`/api/ingredients?id=${id}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${currentToken}` }
-  });
+async function delIng(id){
+  ings=ings.filter(i=>i.id!==id);render();updateMenuMatch();updateAlerts();
+  await fetch(`/api/ingredients?id=${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${currentToken}`}});
 }
 
-function ctx() {
-  if (!ings.length) return '현재 등록된 재료 없음';
-  const meat = ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>{
-    const {remaining,elapsed,maxDays}=getExpiryInfo(i);
-    const s=i.storage_type==='freezer'?'냉동':'냉장';
-    return `${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
-  }).join(', ')||'없음';
-  const veg = ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>{
-    const {remaining,elapsed,maxDays}=getExpiryInfo(i);
-    const s=i.storage_type==='freezer'?'냉동':'냉장';
-    return `${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;
-  }).join(', ')||'없음';
-  const full = getMatched().filter(m=>m.level==='full').map(m=>m.menu).join(', ')||'없음';
-  const part = getMatched().filter(m=>m.level==='partial').map(m=>m.menu).join(', ')||'없음';
-  return `[육류/어류] ${meat}\n[야채] ${veg}\n[바로 만들 수 있는 메뉴] ${full}\n[재료 조금 더 있으면 가능한 메뉴] ${part}\n※ 조미료/김치는 항상 구비되어 있다고 가정합니다.`;
+// 메뉴 AI 추천
+let suggestedMeat=[],suggestedVeg=[];
+async function suggestMenu(){
+  const name=document.getElementById('newMenuName').value.trim();
+  if(!name)return;
+  const btn=document.getElementById('suggestBtn');
+  btn.textContent='추천 중...';btn.classList.add('loading');btn.disabled=true;
+  try{
+    const r=await fetch('/api/suggest',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({menuName:name})});
+    const data=await r.json();
+    if(data.error){alert('AI 추천 중 오류가 발생했어요.');return;}
+    suggestedMeat=[...(data.meat||[])];
+    suggestedVeg=[...(data.veg||[])];
+    if(data.category){
+      const catEl=document.getElementById('newCat');
+      for(const opt of catEl.options){if(opt.value===data.category){catEl.value=data.category;break;}}
+    }
+    renderTags();
+    document.getElementById('suggestResult').className='suggest-result show';
+  }catch(err){alert('오류가 발생했어요.');}
+  finally{btn.textContent='AI 재료 추천';btn.classList.remove('loading');btn.disabled=false;}
 }
 
-function initChat() {
+function renderTags(){
+  document.getElementById('meatTags').innerHTML=suggestedMeat.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('meat',${i})">✕</span></span>`).join('');
+  document.getElementById('vegTags').innerHTML=suggestedVeg.map((t,i)=>`<span class="tag">${e(t)}<span class="tag-del" onclick="removeTag('veg',${i})">✕</span></span>`).join('');
+}
+function removeTag(type,idx){if(type==='meat')suggestedMeat.splice(idx,1);else suggestedVeg.splice(idx,1);renderTags();}
+function addTag(type){
+  const el=document.getElementById(type==='meat'?'meatInput':'vegInput');
+  const val=el.value.trim();if(!val)return;
+  if(type==='meat')suggestedMeat.push(val);else suggestedVeg.push(val);
+  el.value='';renderTags();
+}
+
+async function saveMenu(){
+  const name=document.getElementById('newMenuName').value.trim();
+  if(!name){alert('메뉴 이름을 입력해주세요.');return;}
+  const category=document.getElementById('newCat').value;
+  await fetch('/api/menus',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({name,category,meat:suggestedMeat,veg:suggestedVeg,user_id:currentUser.id})});
+  document.getElementById('newMenuName').value='';
+  document.getElementById('suggestResult').className='suggest-result';
+  suggestedMeat=[];suggestedVeg=[];
+  await loadMenus();updateMenuMatch();
+}
+
+async function deleteMenu(id){
+  if(!confirm('이 메뉴를 삭제할까요?'))return;
+  await fetch(`/api/menus?id=${id}&user_id=${currentUser.id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${currentToken}`}});
+  await loadMenus();updateMenuMatch();
+}
+
+function ctx(){
+  if(!ings.length)return'현재 등록된 재료 없음';
+  const meat=ings.filter(i=>i.cat==='meat'&&i.qty>0).map(i=>{const{remaining,elapsed,maxDays}=getExpiryInfo(i),s=i.storage_type==='freezer'?'냉동':'냉장';return`${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;}).join(', ')||'없음';
+  const veg=ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>{const{remaining,elapsed,maxDays}=getExpiryInfo(i),s=i.storage_type==='freezer'?'냉동':'냉장';return`${i.name} ${i.qty}${i.unit}(${s}, ${elapsed}일째 보관, 적정${maxDays}일, ${remaining<=0?`${Math.abs(remaining)}일 초과`:`${remaining}일 남음`})`;}).join(', ')||'없음';
+  const matched=getMatched();
+  const full=matched.filter(m=>m.level==='full').map(m=>m.menu).join(', ')||'없음';
+  const part=matched.filter(m=>m.level==='partial').map(m=>m.menu).join(', ')||'없음';
+  const menuList=menus.map(m=>m.name).join(', ');
+  return`[육류/어류] ${meat}\n[야채/기타] ${veg}\n[바로 만들 수 있는 메뉴] ${full}\n[재료 조금 더 있으면 가능한 메뉴] ${part}\n[전체 메뉴 레퍼토리] ${menuList}\n※ 조미료/김치는 항상 구비되어 있다고 가정합니다.`;
+}
+
+function initChat(){
   document.getElementById('chat').innerHTML='';
-  const full = getMatched().filter(m=>m.level==='full');
-  const expired = ings.filter(i=>getExpiryInfo(i).remaining<=0&&i.qty>0);
-  let msg = `안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n`;
-  if (ings.length===0) msg += '아직 재료가 없어요. 왼쪽에서 육류/야채를 추가해보세요!\n\n조미료, 김치 등 상시 구비 재료는 따로 입력 안 하셔도 돼요 😊';
-  else {
-    if (expired.length) msg += `⚠️ ${expired.map(i=>i.name).join(', ')}이(가) 보관 기간을 초과했어요! 오늘 드시는 걸 추천해요.\n\n`;
-    msg += `현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n위 메뉴 버튼을 클릭하거나 자유롭게 물어보세요.`;
+  const full=getMatched().filter(m=>m.level==='full');
+  const expired=ings.filter(i=>getExpiryInfo(i).remaining<=0&&i.qty>0);
+  let msg='안녕하세요! 우리집 메뉴 플래너예요 🍳\n\n';
+  if(ings.length===0)msg+='아직 재료가 없어요. 왼쪽에서 육류/야채를 추가해보세요!';
+  else{
+    if(expired.length)msg+=`⚠️ ${expired.map(i=>i.name).join(', ')}이(가) 보관 기간을 초과했어요! 오늘 드시는 걸 추천해요.\n\n`;
+    msg+=`현재 재료로 바로 만들 수 있는 메뉴가 ${full.length}개 있어요!\n위 메뉴 버튼을 클릭하거나 자유롭게 물어보세요.`;
   }
-  addMsg('ai', msg);
+  addMsg('ai',msg);
 }
 
-function addMsg(role,text) {
-  const area=document.getElementById('chat');
-  const div=document.createElement('div');
+function addMsg(role,text){
+  const area=document.getElementById('chat'),div=document.createElement('div');
   div.className=`msg ${role==='user'?'user':'ai'}`;
   div.innerHTML=`<div class="msg-label">${role==='user'?'나':'메뉴 플래너'}</div><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
   area.appendChild(div);area.scrollTop=area.scrollHeight;
 }
-function addLoading(){
-  const area=document.getElementById('chat');
-  const div=document.createElement('div');div.className='msg ai';div.id='loading';
-  div.innerHTML=`<div class="msg-label">메뉴 플래너</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
-  area.appendChild(div);area.scrollTop=area.scrollHeight;
-}
+function addLoading(){const area=document.getElementById('chat'),div=document.createElement('div');div.className='msg ai';div.id='loading';div.innerHTML=`<div class="msg-label">메뉴 플래너</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;area.appendChild(div);area.scrollTop=area.scrollHeight;}
 function removeLoading(){const el=document.getElementById('loading');if(el)el.remove();}
 
-function setTab(tab,btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  if(tab==='weekly') qs('이번주 7일 식단을 현재 재료 낭비 없이 영양 균형 맞춰서 요일별로 짜줘. 보관 기간 초과 임박한 재료 먼저 써줘.');
-  else if(tab==='shopping') qs('현재 재고를 보고 이번주 균형잡힌 식사를 위해 추가로 사면 좋을 육류/야채를 알려줘. 조미료/김치는 제외해줘.');
-}
-
-async function send(){
-  const input=document.getElementById('msgInput');
-  const text=input.value.trim();if(!text)return;
-  input.value='';await processMsg(text);
-}
+async function send(){const input=document.getElementById('msgInput'),text=input.value.trim();if(!text)return;input.value='';await processMsg(text);}
 async function qs(text){await processMsg(text);}
 
 async function processMsg(text){
-  addMsg('user',text);history.push({role:'user',content:text});addLoading();
+  addMsg('user',text);chatHistory.push({role:'user',content:text});addLoading();
   try{
-    const r = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${currentToken}` },
-      body: JSON.stringify({ messages:history, ingredients:ctx() })
-    });
-    const data = await r.json();
-    let reply = data.reply||'응답을 받지 못했어요.';
-    history.push({role:'assistant',content:reply});
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({messages:chatHistory,ingredients:ctx()})});
+    const data=await r.json();
+    let reply=data.reply||'응답을 받지 못했어요.';
+    chatHistory.push({role:'assistant',content:reply});
     const updates=[...reply.matchAll(/\[UPDATE:(\{[^}]+\})\]/g)];
     if(updates.length){
       for(const m of updates){
-        try{
-          const u=JSON.parse(m[1]);
-          const ing=ings.find(i=>i.name===u.name);
-          if(ing){
-            ing.qty=Math.max(0,Math.round((ing.qty-(u.usedQty||0))*100)/100);
-            await fetch(`/api/ingredients?id=${ing.id}`,{
-              method:'PATCH',
-              headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},
-              body:JSON.stringify({qty:ing.qty})
-            });
-          }
-        }catch(e2){}
+        try{const u=JSON.parse(m[1]),ing=ings.find(i=>i.name===u.name);
+        if(ing){ing.qty=Math.max(0,Math.round((ing.qty-(u.usedQty||0))*100)/100);await fetch(`/api/ingredients?id=${ing.id}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({qty:ing.qty})});}}catch(e2){}
       }
       reply=reply.replace(/\[UPDATE:\{[^}]+\}\]/g,'').trim();
       render();updateMenuMatch();updateAlerts();
@@ -535,7 +529,6 @@ async function processMsg(text){
   }catch(err){removeLoading();addMsg('ai','오류가 발생했어요. 잠시 후 다시 시도해주세요.');}
 }
 
-// 시작
 restoreSession();
 </script>
 </body>
