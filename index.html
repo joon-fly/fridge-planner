@@ -588,6 +588,20 @@ function removeLoading(){const el=document.getElementById('loading');if(el)el.re
 
 function setMainTabChat(){document.querySelector('.main-tab').click();}
 
+// 동시 실행 개수를 제한하면서 배열의 각 항목에 비동기 함수를 적용
+async function mapWithConcurrency(items, limit, fn){
+  const results=new Array(items.length);
+  let next=0;
+  async function worker(){
+    while(next<items.length){
+      const i=next++;
+      results[i]=await fn(items[i]);
+    }
+  }
+  await Promise.all(Array.from({length:Math.min(limit,items.length)}, worker));
+  return results;
+}
+
 // 롯데마트 장보기 버튼
 async function fetchAndShop(){
   if(!userSettings?.store_name){
@@ -601,7 +615,9 @@ async function fetchAndShop(){
   const searchItems = getNeededItems();
   try{
     const storeName=userSettings.store_name.replace('롯데마트 ','');
-    const results = await Promise.all(searchItems.map(async item=>{
+    // 최대 24개 항목을 한 번에 Promise.all로 다 쏘면 롯데마트 쪽에 부하가 몰려서
+    // 그 순간 여러 항목이 한꺼번에 실패하는 경우가 있었다. 동시 요청 수를 제한한다.
+    const results = await mapWithConcurrency(searchItems, 5, async item=>{
       try{
         const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(storeName)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
         const data=await r.json();
@@ -614,7 +630,7 @@ async function fetchAndShop(){
         const relevant=products.filter(p=>!CONDIMENT_PATTERN.test(p.productName||''));
         return relevant.slice(0,3);
       }catch(e){return [];}
-    }));
+    });
     const productResults = results.flat();
     removeLoading();
     chatHistory.push({role:'user', content:`${userSettings.store_name} 실시간 상품 정보를 기반으로 이번주 장보기 목록을 용량과 가격 포함해서 추천해줘`});
@@ -662,7 +678,7 @@ function getNeededItems(){
     '메추리알':'메추리알', '햄':'햄 1팩', '소시지':'소시지 1팩',
     '두부':'두부 1모', '애호박':'애호박', '콩나물':'콩나물',
     '시금치':'시금치', '미역':'미역', '순두부':'순두부',
-    '계란':'계란 1판',
+    '계란':'계란 1판', '달걀':'계란 1판',
   };
 
   const mapped = [...needed].map(k => keywordMap[k] || k);
