@@ -631,21 +631,27 @@ function getNeededItems(){
   const vegHave=ings.filter(i=>(i.cat==='veg'||i.cat==='etc')&&i.qty>0).map(i=>i.name);
 
   // 메뉴에 필요한 재료 수집 (있는 것 + 없는 것 모두)
-  const needed=new Set();
+  // 육류와 채소를 따로 모아서 각각 상한을 두는 이유: 등록된 메뉴가 많아지면
+  // 육류 종류만으로도 10가지가 훌쩍 넘어서, 하나의 목록에 합쳐서 자르면
+  // 채소는 검색 목록에 아예 들어가지 못하는 문제가 있었다.
+  const neededMeat=new Set();
+  const neededVeg=new Set();
 
   // 부족한 육류 먼저 (전체 메뉴 레퍼토리 기준)
   menus.forEach(m=>{
     (m.meat||[]).forEach(mt=>{
-      if(!meatHave.some(h=>h.includes(mt)||mt.includes(h))) needed.add(mt);
+      if(!meatHave.some(h=>h.includes(mt)||mt.includes(h))) neededMeat.add(mt);
     });
   });
 
   // 없는 야채
   menus.forEach(m=>{
     (m.veg||[]).forEach(v=>{
-      if(!vegHave.some(h=>h.includes(v)||v.includes(h))) needed.add(v);
+      if(!vegHave.some(h=>h.includes(v)||v.includes(h))) neededVeg.add(v);
     });
   });
+
+  const needed=new Set([...neededMeat].slice(0,12).concat([...neededVeg].slice(0,12)));
 
   // 롯데마트 검색에 맞게 구체적인 키워드로 변환
   const keywordMap = {
@@ -661,7 +667,7 @@ function getNeededItems(){
 
   const mapped = [...needed].map(k => keywordMap[k] || k);
   if(!mapped.length) return ['돼지앞다리살','닭다리살','계란'];
-  return mapped.slice(0,15);
+  return mapped; // 육류/채소 각각 최대 12개로 이미 제한됨 (최대 24개)
 }
 
 async function send(){
