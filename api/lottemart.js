@@ -1,8 +1,9 @@
-const BASE = 'https://mcp.aka.page';
+// mcp.aka.page(원본 daiso-mcp 공개 인스턴스)의 롯데마트 페이지네이션 토큰 만료 버그를
+// 고친 자체 호스팅 포크. https://github.com/joon-fly/daiso-mcp
+const BASE = 'https://lottemart-mcp.joon9296.workers.dev';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// mcp.aka.page(롯데마트 상품 검색 프록시)가 세션/토큰 문제로 종종 실패한다.
-// 응답 자체가 retryable:true를 알려주기 때문에, 실패 시 한 번 더 시도한다.
+// 자체 호스팅 쪽에서도 내부적으로 재시도하지만, 그래도 실패할 수 있어 한 번 더 시도한다.
 async function fetchWithRetry(url, retries = 1) {
   let last;
   for (let i = 0; i <= retries; i++) {
