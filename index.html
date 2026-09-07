@@ -596,7 +596,7 @@ async function fetchAndShop(){
   }
   addMsg('user',`🛒 ${userSettings.store_name} 실시간 재고·가격 확인`);
   addLoading();
-  addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (매장 시스템이 느려서 최대 30~40초 정도 걸릴 수 있어요)`);
+  addMsg('ai',`📡 ${userSettings.store_name}에서 상품 검색 중이에요... (매장 시스템이 느려서 최대 1분 정도 걸릴 수 있어요)`);
 
   const searchItems = getNeededItems();
   try{
