@@ -606,9 +606,12 @@ async function fetchAndShop(){
         const r=await fetch(`/api/lottemart?action=products&storeName=${encodeURIComponent(storeName)}&keyword=${encodeURIComponent(item)}&area=${encodeURIComponent(userSettings.store_area||'서울')}`);
         const data=await r.json();
         const products=data?.data?.products||[];
-        // 검색어와 실제로 무관한 상품(예: "소고기 양지" 검색인데 "고기전용 쌈장"이 걸리는 경우) 걸러내기
-        const tokens=item.split(/\s+/).filter(t=>t.length>=2);
-        const relevant=products.filter(p=>tokens.some(t=>(p.productName||'').includes(t)));
+        // "검색어 포함해야 함" 허용목록 방식은 실제 상품명과 안 맞아서(예: "돼지앞다리살"로
+        // 검색해도 실상품명은 "돼지 앞다리"처럼 공백이 들어감, "소고기"라는 단어 자체를
+        // 안 쓰는 정육 상품명도 많음) 정상 결과를 대량으로 걸러내는 문제가 있었다.
+        // 대신 "쌈장/소스처럼 명백히 무관한 조미료가 아니어야 함" 차단목록 방식으로 변경.
+        const CONDIMENT_PATTERN=/쌈장|소스|드레싱|다대기|양념장|고추장|된장|식초|마요네즈/;
+        const relevant=products.filter(p=>!CONDIMENT_PATTERN.test(p.productName||''));
         return relevant.slice(0,3);
       }catch(e){return [];}
     }));
