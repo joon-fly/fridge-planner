@@ -3,8 +3,9 @@
 const BASE = 'https://lottemart-mcp.joon9296.workers.dev';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// 자체 호스팅 쪽에서도 내부적으로 재시도하지만, 그래도 실패할 수 있어 한 번 더 시도한다.
-async function fetchWithRetry(url, retries = 1) {
+// 자체 호스팅 쪽에서도 내부적으로 재시도하지만, 롯데마트 쪽 실패율이 꽤 있어서
+// (건당 1/6 정도) 여기서도 몇 번 더 시도해야 체감 실패율이 확 줄어든다.
+async function fetchWithRetry(url, retries = 2) {
   let last;
   for (let i = 0; i <= retries; i++) {
     try {

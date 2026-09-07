@@ -3,6 +3,7 @@
   "functions": {
     "api/chat.js": { "maxDuration": 30 },
     "api/suggest.js": { "maxDuration": 30 },
-    "api/lottemart.js": { "maxDuration": 60 }
+    "api/lottemart.js": { "maxDuration": 60 },
+    "api/stock.js": { "maxDuration": 60 }
   }
 }

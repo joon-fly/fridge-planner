@@ -5,7 +5,7 @@ const DEFAULT_STORE = '문래점';
 const DEFAULT_AREA = '서울';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function fetchWithRetry(url, retries = 1) {
+async function fetchWithRetry(url, retries = 2) {
   let last;
   for (let i = 0; i <= retries; i++) {
     try {
