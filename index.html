@@ -161,6 +161,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   .sidebar{border-right:none;border-bottom:1px solid #e8e8e0}
   .ing-list{max-height:150px}
 }
+
+/* 첫 사용 안내 투어 */
+.tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000}
+.tour-highlight{position:fixed;z-index:9001;border-radius:12px;box-shadow:0 0 0 4px #fff,0 0 0 9999px rgba(0,0,0,.55);pointer-events:none;transition:all .25s ease}
+.tour-tooltip{position:fixed;z-index:9002;background:#fff;border-radius:14px;padding:16px;width:280px;box-shadow:0 8px 30px rgba(0,0,0,.25);transition:top .25s ease,left .25s ease}
+.tour-tooltip-close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:16px;color:#aaa;cursor:pointer;line-height:1}
+.tour-tooltip-close:hover{color:#333}
+.tour-tooltip-step{font-size:11px;color:#999;margin-bottom:4px}
+.tour-tooltip-title{font-size:14px;font-weight:700;margin-bottom:6px;padding-right:16px}
+.tour-tooltip-body{font-size:12.5px;color:#555;line-height:1.6;margin-bottom:12px}
+.tour-tooltip-nav{display:flex;justify-content:flex-end;gap:6px}
+.tour-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
+.tour-btn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.tour-replay-btn{border:none;background:none;cursor:pointer;font-size:16px;color:#999;padding:2px 4px}
+.tour-replay-btn:hover{color:#333}
 </style>
 </head>
 <body>
@@ -199,6 +214,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <h2>🧊 내 재고</h2>
       <div class="header-right">
         <span class="badge" id="badge">불러오는 중</span>
+        <button class="tour-replay-btn" onclick="startTour()" title="사용법 다시 보기">❓</button>
         <button class="logout-btn" onclick="logout()">로그아웃</button>
       </div>
     </div>
@@ -350,7 +366,9 @@ function showApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').className='app visible';
   document.getElementById('userInfo').textContent=currentUser.email;
-  loadAll();
+  loadAll().then(()=>{
+    if(!localStorage.getItem('tour_seen_v1'))startTour();
+  });
 }
 function restoreSession(){
   const token=sessionStorage.getItem('token'),user=sessionStorage.getItem('user');
@@ -587,6 +605,65 @@ function addLoading(){const area=document.getElementById('chat'),div=document.cr
 function removeLoading(){const el=document.getElementById('loading');if(el)el.remove();}
 
 function setMainTabChat(){document.querySelector('.main-tab').click();}
+
+// 첫 사용 안내 투어: 재고 추가 → 메뉴 관리 → 매장 설정 → 메뉴 추천 순으로
+// 실제 화면 요소를 하나씩 짚어가며 설명한다.
+const TOUR_STEPS=[
+  {selector:'.add-form',tab:null,title:'① 재료 추가하기',body:'카테고리(육류/야채/기타)와 보관 방법을 고르고, 재료명·수량·단위를 입력한 뒤 "+ 추가"를 누르면 재고에 등록돼요.'},
+  {selector:'.main-tabs',tab:null,title:'② 메뉴 추천 / 메뉴 관리',body:'"메뉴 추천" 탭은 채팅으로 오늘 뭐 먹을지 물어보는 곳이고, "메뉴 관리" 탭에서는 내가 만들 수 있는 메뉴 레퍼토리를 등록해요.'},
+  {selector:'#panel-manage .add-menu-box',tab:'manage',title:'③ 새 메뉴 등록하기',body:'메뉴 이름을 입력하고 "AI 재료 추천"을 누르면 필요한 재료를 자동으로 채워줘요. 확인·수정 후 "메뉴 등록하기"를 누르면 내 레퍼토리에 추가돼요.'},
+  {selector:'.store-bar',tab:'recommend',title:'④ 선호 매장 설정',body:'"변경" 버튼으로 자주 가는 롯데마트를 설정해두면, 실시간 가격·재고를 확인할 수 있어요.'},
+  {selector:'.quick',tab:'recommend',title:'⑤ 메뉴 추천 받기',body:'재고 기반 추천, 주간 식단, 급한 재료부터 쓰기, 실시간 장보기까지 버튼 하나로 물어볼 수 있어요.'},
+];
+let tourStep=0;
+
+function startTour(){
+  tourStep=0;
+  document.body.insertAdjacentHTML('beforeend','<div class="tour-overlay" id="tourOverlay"></div><div class="tour-highlight" id="tourHighlight"></div><div class="tour-tooltip" id="tourTooltip"></div>');
+  renderTourStep();
+}
+
+function endTour(){
+  localStorage.setItem('tour_seen_v1','1');
+  ['tourOverlay','tourHighlight','tourTooltip'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
+}
+
+function renderTourStep(){
+  const step=TOUR_STEPS[tourStep];
+  if(!step){endTour();return;}
+  if(step.tab){
+    const idx=step.tab==='manage'?1:0;
+    const btn=document.querySelectorAll('.main-tabs .main-tab')[idx];
+    if(btn&&!btn.classList.contains('active'))setMainTab(step.tab,btn);
+  }
+  const target=document.querySelector(step.selector);
+  if(!target){tourStep++;renderTourStep();return;}
+  const rect=target.getBoundingClientRect();
+  const hl=document.getElementById('tourHighlight');
+  hl.style.top=(rect.top-6)+'px';hl.style.left=(rect.left-6)+'px';
+  hl.style.width=(rect.width+12)+'px';hl.style.height=(rect.height+12)+'px';
+
+  const isLast=tourStep===TOUR_STEPS.length-1;
+  const tip=document.getElementById('tourTooltip');
+  tip.innerHTML=`
+    <button class="tour-tooltip-close" onclick="tourNext()">✕</button>
+    <div class="tour-tooltip-step">${tourStep+1} / ${TOUR_STEPS.length}</div>
+    <div class="tour-tooltip-title">${e(step.title)}</div>
+    <div class="tour-tooltip-body">${e(step.body)}</div>
+    <div class="tour-tooltip-nav">
+      ${tourStep>0?'<button class="tour-btn" onclick="tourPrev()">이전</button>':''}
+      <button class="tour-btn primary" onclick="tourNext()">${isLast?'완료':'다음'}</button>
+    </div>`;
+
+  const tipWidth=280,margin=12;
+  let top=rect.bottom+margin;
+  if(top+190>window.innerHeight)top=Math.max(margin,rect.top-190);
+  const left=Math.max(margin,Math.min(rect.left,window.innerWidth-tipWidth-margin));
+  tip.style.top=top+'px';tip.style.left=left+'px';
+}
+
+function tourNext(){tourStep++;renderTourStep();}
+function tourPrev(){tourStep--;renderTourStep();}
 
 // 동시 실행 개수를 제한하면서 배열의 각 항목에 비동기 함수를 적용
 async function mapWithConcurrency(items, limit, fn){
