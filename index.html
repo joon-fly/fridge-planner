@@ -351,6 +351,7 @@ async function login(){
     const data=await r.json();
     if(data.error){errEl.textContent=data.error;return;}
     currentUser=data.user;currentToken=data.access_token;
+    sessionExpiredHandled=false;
     sessionStorage.setItem('token',currentToken);sessionStorage.setItem('user',JSON.stringify(currentUser));
     showApp();
   }catch(e){errEl.textContent='로그인 중 오류가 발생했어요.';}
@@ -366,8 +367,8 @@ function showApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').className='app visible';
   document.getElementById('userInfo').textContent=currentUser.email;
-  loadAll().then(()=>{
-    if(!localStorage.getItem('tour_seen_v1'))startTour();
+  loadAll().then((ok)=>{
+    if(ok&&!localStorage.getItem('tour_seen_v1'))startTour();
   });
 }
 function restoreSession(){
@@ -383,21 +384,40 @@ async function authFetch(path,method='GET',body=null){
 
 async function loadAll(){
   await Promise.all([loadIngs(),loadMenus(),loadSettings()]);
+  // 세션이 만료돼 로그인 화면으로 돌아간 상태라면(currentUser=null) 이후 렌더링은 건너뛴다.
+  if(sessionExpiredHandled||!currentUser)return false;
   render();updateMenuMatch();updateAlerts();initChat();setBadge('saved');
+  return true;
+}
+
+// 토큰이 만료되면 서버가 401을 준다. 이때 조용히 빈 화면을 보여주면
+// "데이터가 사라졌다"로 오해하기 쉬우므로, 로그인 화면으로 되돌리고 이유를 알려준다.
+let sessionExpiredHandled=false;
+function handleSessionExpired(){
+  if(sessionExpiredHandled)return;   // loadAll이 병렬이라 중복 호출될 수 있음
+  sessionExpiredHandled=true;
+  logout();
+  const err=document.getElementById('loginError');
+  if(err)err.textContent='로그인이 만료되었어요. 다시 로그인해주세요.';
 }
 
 async function loadIngs(){
-  try{const r=await fetch(`/api/ingredients?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();ings=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadIngs: unexpected response',r.status,d);}
+  try{const r=await fetch(`/api/ingredients`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});
+    if(r.status===401){handleSessionExpired();return;}
+    const d=await r.json();ings=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadIngs: unexpected response',r.status,d);}
   catch(e){ings=[];console.error('loadIngs failed:',e);}
 }
 async function loadMenus(){
-  try{const r=await fetch(`/api/menus?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});const d=await r.json();menus=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadMenus: unexpected response',r.status,d);}
+  try{const r=await fetch(`/api/menus`,{headers:{'Authorization':`Bearer ${currentToken}`,'Content-Type':'application/json'}});
+    if(r.status===401){handleSessionExpired();return;}
+    const d=await r.json();menus=Array.isArray(d)?d:[];if(!Array.isArray(d))console.error('loadMenus: unexpected response',r.status,d);}
   catch(e){menus=[];console.error('loadMenus failed:',e);}
   renderMenus();
 }
 async function loadSettings(){
   try{
-    const r=await fetch(`/api/settings?user_id=${currentUser.id}`,{headers:{'Authorization':`Bearer ${currentToken}`}});
+    const r=await fetch(`/api/settings`,{headers:{'Authorization':`Bearer ${currentToken}`}});
+    if(r.status===401){handleSessionExpired();return;}
     userSettings=await r.json();
     updateStoreBadge();
   }catch(e){userSettings=null;console.error('loadSettings failed:',e);}
