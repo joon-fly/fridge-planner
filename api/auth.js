@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       });
 
       const data = await r.json();
-      console.log('Supabase auth response:', JSON.stringify(data).slice(0, 300));
+      // 주의: 이 응답에는 access_token이 들어 있으므로 절대 로그로 남기지 않는다.
 
       if (!r.ok || data.error) {
         return res.status(401).json({ error: data.error_description || data.msg || '이메일 또는 비밀번호가 올바르지 않아요.' });

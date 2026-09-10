@@ -1,5 +1,11 @@
+import { verifyUser, unauthorized } from '../lib/auth.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // 인증 없이 열어두면 누구나 호출해서 Anthropic 크레딧을 소진시킬 수 있다.
+  const user = await verifyUser(req);
+  if (!user) return unauthorized(res);
 
   const { menuName } = req.body;
 
