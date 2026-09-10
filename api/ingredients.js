@@ -1,51 +1,55 @@
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+import { verifyUser, serviceHeaders, unauthorized } from '../lib/auth.js';
 
-function getHeaders(token) {
-  return {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-    'Content-Type': 'application/json'
-  };
-}
+const SUPABASE_URL = process.env.SUPABASE_URL;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'no-store');
-  const token = req.headers.authorization?.replace('Bearer ', '') || SUPABASE_KEY;
-  const headers = getHeaders(token);
+
+  // user_id는 절대 호출자가 보낸 값을 믿지 않고, 검증된 토큰에서만 얻는다.
+  const user = await verifyUser(req);
+  if (!user) return unauthorized(res);
+
+  const headers = serviceHeaders();
+  const uid = encodeURIComponent(user.id);
 
   if (req.method === 'GET') {
-    const { user_id } = req.query;
-    const filter = user_id ? `?user_id=eq.${user_id}&order=created_at.asc` : `?order=created_at.asc`;
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients${filter}`, { headers });
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/ingredients?user_id=eq.${uid}&order=created_at.asc`,
+      { headers }
+    );
     const data = await r.json();
     return res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
-    const { name, cat, storage_type, qty, unit, user_id } = req.body;
+    const { name, cat, storage_type, qty, unit } = req.body;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients`, {
       method: 'POST',
       headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ name, cat, storage_type, qty, unit, user_id })
+      body: JSON.stringify({ name, cat, storage_type, qty, unit, user_id: user.id })
     });
     const data = await r.json();
     return res.status(200).json(data);
   }
 
+  // 아래 두 개는 id뿐 아니라 user_id까지 함께 걸어서, 남의 행은 건드릴 수 없게 한다.
   if (req.method === 'DELETE') {
-    const { id } = req.query;
-    await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}`, { method: 'DELETE', headers });
+    const id = encodeURIComponent(req.query.id || '');
+    await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}&user_id=eq.${uid}`, {
+      method: 'DELETE',
+      headers
+    });
     return res.status(200).json({ ok: true });
   }
 
   if (req.method === 'PATCH') {
-    const { id } = req.query;
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}`, {
+    const id = encodeURIComponent(req.query.id || '');
+    // 요청 본문으로 user_id를 덮어쓰려는 시도는 무시한다.
+    const { user_id: _ignored, id: _ignoredId, ...patch } = req.body || {};
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ingredients?id=eq.${id}&user_id=eq.${uid}`, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(patch)
     });
     const data = await r.json();
     return res.status(200).json(data);
